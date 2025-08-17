@@ -843,7 +843,7 @@
             let coinMultipliers = [];
 
             let asteroidSpawnRate = 75;
-            let asteroidSpeed = 1.0;
+            let asteroidSpeed = 0.8; // MODIFIED: Reduced asteroid speed
             const powerUpSpawnInterval = 15 * 60;
             const redBombSpawnInterval = 15 * 60;
             const coinMultiplierSpawnInterval = 20 * 60;
@@ -954,7 +954,7 @@
                 y: 0,
                 orbitRadius: 100,
                 angle: 0,
-                speed: 0.018,
+                speed: 0.016, // MODIFIED: Reduced player speed
                 direction: 1,
                 size: 15,
                 skin: localStorage.getItem('orbitDashCurrentSkin') || 'ironMan'
@@ -1630,8 +1630,8 @@
                 stopAllMusic();
                 hasPlayedShipSound = false;
                 isGameStarted = true;
-                asteroidSpeed = 1.0;
-                player.speed = 0.018;
+                asteroidSpeed = 0.8; // MODIFIED: Reset to new medium speed
+                player.speed = 0.016; // MODIFIED: Reset to new medium speed
                 asteroidSpawnRate = 75;
                 score = 0;
                 earthHealth = 100;
@@ -1807,7 +1807,7 @@
             }
             function updatePulse() {
                 if (pulseActive) {
-                    pulseRadius += 2.5;
+                    pulseRadius += 1.8; // MODIFIED: Reduced pulse wave speed
                     if (pulseRadius > maxPulseRadius) {
                         pulseActive = false;
                         pulseRadius = 0;
