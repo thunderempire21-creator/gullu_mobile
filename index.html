@@ -1594,8 +1594,8 @@
             }
 
             function resizeCanvas() {
-                // On mobile, use the full landscape window dimensions
-                if (isTouchDevice() && window.innerHeight < window.innerWidth) {
+                // MODIFIED: Simplified logic to always fit screen on mobile
+                if (isTouchDevice()) {
                      canvas.width = window.innerWidth;
                      canvas.height = window.innerHeight;
                 } else {
@@ -1624,10 +1624,10 @@
                 hasPlayedShipSound = false;
                 isGameStarted = true;
                 
-                // NEW: Adjust speeds for mobile
+                // MODIFIED: Adjust speeds for mobile
                 if (isTouchDevice()) {
-                    player.speed = 0.012; // Slower ship
-                    asteroidSpeed = 0.7;  // Slower asteroids
+                    player.speed = 0.014; // A 'little medium' speed for the ship
+                    asteroidSpeed = 0.7;  // Keep asteroids slower for better playability
                 } else {
                     player.speed = 0.018;
                     asteroidSpeed = 1.0;
@@ -3034,25 +3034,13 @@
                 if (e.key === 'q') { isQKeyPressed = false; }
             });
 
-            // --- NEW: Mobile Control Event Listeners ---
-            let fireInterval = null;
+            // --- MODIFIED: Mobile Control Event Listeners for single tap fire ---
             if (isTouchDevice()) {
                 fireBtn.addEventListener('touchstart', (e) => {
                     e.preventDefault();
-                    if (!gameOver && !gamePaused && !fireInterval) {
-                        fireBeam(); // Fire immediately on touch
-                        fireInterval = setInterval(fireBeam, 200); // Then fire every 200ms
+                    if (!gameOver && !gamePaused) {
+                        fireBeam(); // Fire once on touch
                     }
-                });
-                fireBtn.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    clearInterval(fireInterval);
-                    fireInterval = null;
-                });
-                fireBtn.addEventListener('touchcancel', (e) => {
-                    e.preventDefault();
-                    clearInterval(fireInterval);
-                    fireInterval = null;
                 });
 
                 moveBtn.addEventListener('touchstart', (e) => {
