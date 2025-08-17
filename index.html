@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Avenger: Gullu Games</title>
     <!-- Tone.js for sound effects and music -->
     <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.js"></script>
@@ -18,7 +19,7 @@
             height: 100vh;
             background-color: #0d0d1a;
             /* --- MODIFIED: Added background image --- */
-            background-image: url('Wow.png');
+            background-image: url('images/Wow.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -80,7 +81,7 @@
             width: 100%;
             height: 100%;
             /* --- MODIFIED: Changed background to use start.png --- */
-            background-image: url('start.png');
+            background-image: url('images/start.png');
             background-color: #1b2735; /* Fallback color */
             background-size: cover;
             background-position: center;
@@ -508,90 +509,6 @@
             stroke: red;
             stroke-width: 5;
         }
-
-        /* --- NEW: Mobile Specific Styles --- */
-        #orientation-warning {
-            flex-direction: column;
-            text-align: center;
-            padding: 20px;
-            z-index: 9999;
-        }
-        #orientation-warning p {
-            font-size: 1.2em;
-            margin-top: 20px;
-        }
-        .rotate-icon {
-            width: 100px;
-            height: 100px;
-            border: 3px solid #fff;
-            border-radius: 10px;
-            position: relative;
-            animation: rotate-animation 1.5s infinite ease-in-out;
-        }
-        .rotate-icon::before {
-            content: '';
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            height: 10px;
-            background: #fff;
-            border-radius: 5px;
-        }
-        @keyframes rotate-animation {
-            0% { transform: rotate(0deg); }
-            50% { transform: rotate(-90deg); }
-            100% { transform: rotate(-90deg); }
-        }
-
-        #mobile-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 20;
-            pointer-events: none; /* Allow clicks to pass through the container */
-            display: none; /* Hidden by default */
-        }
-        .mobile-btn {
-            position: absolute;
-            bottom: 30px;
-            width: 80px;
-            height: 80px;
-            background-color: rgba(0, 255, 204, 0.3);
-            border: 2px solid #00ffcc;
-            border-radius: 50%;
-            color: #fff;
-            font-size: 1.2rem;
-            font-family: 'Orbitron', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: all; /* Buttons are clickable */
-            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
-        }
-        .mobile-btn:active {
-             background-color: rgba(0, 255, 204, 0.6);
-        }
-        #fire-btn {
-            left: 30px;
-        }
-        #move-btn {
-            right: 30px;
-        }
-        
-        /* Media query to show warning in portrait mode on mobile */
-        @media screen and (max-width: 1024px) and (orientation: portrait) {
-            #orientation-warning {
-                display: flex;
-            }
-            .game-container > *:not(#orientation-warning) {
-                display: none !important; /* Hide everything else */
-            }
-        }
-
         @media (min-width: 768px) {
             #start-screen h1 {
                 font-size: 4rem;
@@ -603,16 +520,6 @@
     <div id="loading-overlay" class="ui-overlay" style="display: flex; z-index: 9999;">
         <div class="loader"></div>
     </div>
-
-    <!-- NEW: Orientation Warning for Mobile -->
-    <div id="orientation-warning" class="ui-overlay">
-        <div class="message-box">
-            <h2>Please Rotate Your Device</h2>
-            <div class="rotate-icon" style="margin: 20px auto;"></div>
-            <p>This game is best played in landscape mode.</p>
-        </div>
-    </div>
-
     <div class="game-container">
         <!-- Updated Start Screen -->
         <div id="start-screen">
@@ -634,13 +541,6 @@
         <div class="game-controls-container">
             <button id="home-button" class="button">Home</button>
         </div>
-
-        <!-- NEW: Mobile On-Screen Controls -->
-        <div id="mobile-controls">
-            <button id="fire-btn" class="mobile-btn">Fire</button>
-            <button id="move-btn" class="mobile-btn">Move</button>
-        </div>
-
         <!-- UI Overlays -->
         <div id="intro-overlay" class="ui-overlay">
             <canvas id="intro-canvas"></canvas>
@@ -654,9 +554,9 @@
                 <h2>Avenger: Gullu Games</h2>
                 <div id="high-score-info">High Score: <span id="high-score">0</span></div>
                 <p>
-                    Press <b>SPACEBAR</b> or tap <b>MOVE</b> to reverse orbit.
+                    Press <b>SPACEBAR</b> to reverse your orbit direction.
                     <br>
-                    Press <b>Q</b> or tap <b>FIRE</b> to fire a beam.
+                    Press <b>Q</b> to fire a beam.
                 </p>
                 <div class="button-group">
                     <button class="button" id="start-game-btn">New Game</button>
@@ -706,13 +606,13 @@
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 2L2 12h5l-3 3h14l-3-3h5L12 2zM12 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="#00ffcc"/>
                             </svg>
-                            <b>SPACEBAR / MOVE Button:</b> Reverses your ship's orbit direction.
+                            <b>SPACEBAR:</b> Reverses your ship's orbit direction around the planet.
                         </p>
                         <p>
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 2v20M5 12h14" stroke="#00ffcc" stroke-width="2" stroke-linecap="round"/>
                             </svg>
-                            <b>Q / FIRE Button:</b> Fires a beam to destroy asteroids and collect power-ups.
+                            <b>Q:</b> Fires a beam to destroy asteroids and collect power-ups.
                         </p>
                     </li>
                     <li>
@@ -776,6 +676,7 @@
             const coinDisplay = document.getElementById('coins');
             const coinMultiplierTimerDisplay = document.getElementById('coin-multiplier-timer');
             const coinMultiplierTimeSpan = document.getElementById('coin-multiplier-time');
+
             const startScreen = document.getElementById('start-screen');
             const startPlayBtn = document.getElementById('start-play-btn');
             const loadingOverlay = document.getElementById('loading-overlay');
@@ -801,12 +702,6 @@
             const instructionsBackBtn = document.getElementById('instructions-back-btn');
             const reviveBtn = document.getElementById('revive-btn');
             const muteBtn = document.getElementById('mute-btn');
-
-            // --- NEW: Mobile Control Elements ---
-            const mobileControls = document.getElementById('mobile-controls');
-            const fireBtn = document.getElementById('fire-btn');
-            const moveBtn = document.getElementById('move-btn');
-            const orientationWarning = document.getElementById('orientation-warning');
 
             // --- Game State Variables ---
             let animationFrameId;
@@ -927,6 +822,7 @@
             const nebulaImage2 = new Image();
             let nebula2 = { x: 0, y: 0, speedX: -0.1, speedY: -0.05 };
 
+
             let impactFrames = [];
             const impactFrameCount = 64;
             let impactExplosions = [];
@@ -1000,98 +896,99 @@
             // --- Asset Loading ---
             const assetsToLoad = [];
             const beamImages = {};
-            const introMusic = new Audio('intro.mp3');
+            const introMusic = new Audio('music/intro.mp3');
             introMusic.loop = true;
-            const mainMenuMusicFile = new Audio('main.mp3');
+            const mainMenuMusicFile = new Audio('music/main.mp3');
             mainMenuMusicFile.loop = true;
-            const gameOverMusic = new Audio('gameover.mp3');
+            const gameOverMusic = new Audio('music/gameover.mp3');
             gameOverMusic.loop = true;
-            const gameMusic = new Audio('game.mp3');
+            const gameMusic = new Audio('music/game.mp3');
             gameMusic.loop = true;
             gameMusic.volume = 0.3; // Set low volume
-            const waveSoundEffect = new Audio('wave.mp3');
-            const revivedSound = new Audio('revived.mp3');
-            const clickSound = new Audio('click.mp3');
-            const purchaseSoundFile = new Audio('purchase.mp3');
-            const fireSound = new Audio('fire.mp3');
+            const waveSoundEffect = new Audio('music/wave.mp3');
+            const revivedSound = new Audio('music/revived.mp3');
+            const clickSound = new Audio('music/click.mp3');
+            const purchaseSoundFile = new Audio('music/purchase.mp3');
+            const fireSound = new Audio('music/fire.mp3');
             fireSound.loop = true;
             fireSound.volume = 0.5;
-            const shopMusic = new Audio('shop.mp3');
+            const shopMusic = new Audio('music/shop.mp3');
             shopMusic.loop = true;
             shopMusic.volume = 0.4;
-            const shipDestroySound = new Audio('ship.mp3');
-            const earthDestroySound = new Audio('earth.mp3');
-            const hitSound = new Audio('hit.mp3');
-            const hit1Sound = new Audio('hit1.mp3');
-            const beamSound = new Audio('beam.mp3');
+            const shipDestroySound = new Audio('music/ship.mp3');
+            const earthDestroySound = new Audio('music/earth.mp3');
+            const hitSound = new Audio('music/hit.mp3');
+            const hit1Sound = new Audio('music/hit1.mp3');
+            const beamSound = new Audio('music/beam.mp3');
             const shipSounds = {
-                'ironMan': new Audio('iron.mp3'),
-                'greenHulk': new Audio('hulk.mp3'),
-                'blackWidow': new Audio('widow.mp3'),
-                'captainAmerica': new Audio('captain.mp3'),
-                'pantherGullu': new Audio('panther.mp3'),
-                'spidyGullu': new Audio('spidy.mp3')
+                'ironMan': new Audio('music/iron.mp3'),
+                'greenHulk': new Audio('music/hulk.mp3'),
+                'blackWidow': new Audio('music/widow.mp3'),
+                'captainAmerica': new Audio('music/captain.mp3'),
+                'pantherGullu': new Audio('music/panther.mp3'),
+                'spidyGullu': new Audio('music/spidy.mp3')
             };
 
             const asteroidTailImage = new Image();
-            asteroidTailImage.src = 'tail.png';
+            asteroidTailImage.src = 'images/tail.png';
             asteroidTailImage.onerror = () => asteroidTailImage.src = 'https://placehold.co/60x30/ff8c00/ffffff?text=Tail';
             assetsToLoad.push(asteroidTailImage);
 
             const asteroidAuraImage = new Image();
-            asteroidAuraImage.src = 'aura1.png';
+            asteroidAuraImage.src = 'images/aura1.png';
             asteroidAuraImage.onerror = () => asteroidAuraImage.src = 'https://placehold.co/100x100/ff8c00/ffffff?text=Aura';
             assetsToLoad.push(asteroidAuraImage);
 
-            nebulaImage.src = 'nebula3.png';
+            nebulaImage.src = 'images/nebula3.png';
             nebulaImage.onerror = () => nebulaImage.src = 'https://placehold.co/800x800/1a1a33/ffffff?text=Nebula+Not+Found';
             assetsToLoad.push(nebulaImage);
-            nebulaImage2.src = 'nebula1.png';
+            
+            nebulaImage2.src = 'images/nebula1.png';
             nebulaImage2.onerror = () => nebulaImage2.src = 'https://placehold.co/800x800/331a1a/ffffff?text=Nebula+1+Not+Found';
             assetsToLoad.push(nebulaImage2);
 
             const ironManImage = new Image();
-            ironManImage.src = 'Ironman.png';
+            ironManImage.src = 'images/Ironman.png';
             ironManImage.onerror = () => ironManImage.src = 'https://placehold.co/100x100/ff0000/ffffff?text=IronMan';
             assetsToLoad.push(ironManImage);
 
             const greenHulkImage = new Image();
-            greenHulkImage.src = 'hulk.png';
+            greenHulkImage.src = 'images/hulk.png';
             greenHulkImage.onerror = () => greenHulkImage.src = 'https://placehold.co/100x100/00ff00/ffffff?text=Hulk';
             assetsToLoad.push(greenHulkImage);
 
             const blackWidowImage = new Image();
-            blackWidowImage.src = 'widow.png';
+            blackWidowImage.src = 'images/widow.png';
             blackWidowImage.onerror = () => blackWidowImage.src = 'https://placehold.co/100x100/000000/ffffff?text=Widow';
             assetsToLoad.push(blackWidowImage);
 
             const captainAmericaImage = new Image();
-            captainAmericaImage.src = 'captain.png';
+            captainAmericaImage.src = 'images/captain.png';
             captainAmericaImage.onerror = () => captainAmericaImage.src = 'https://placehold.co/100x100/0000ff/ffffff?text=Cap';
             assetsToLoad.push(captainAmericaImage);
 
             const pantherGulluImage = new Image();
-            pantherGulluImage.src = 'panther.png';
+            pantherGulluImage.src = 'images/panther.png';
             pantherGulluImage.onerror = () => pantherGulluImage.src = 'https://placehold.co/100x100/8A2BE2/ffffff?text=Panther';
             assetsToLoad.push(pantherGulluImage);
 
             const spidyGulluImage = new Image();
-            spidyGulluImage.src = 'spidy.png';
+            spidyGulluImage.src = 'images/spidy.png';
             spidyGulluImage.onerror = () => spidyGulluImage.src = 'https://placehold.co/100x100/FF0000/ffffff?text=Spidy';
             assetsToLoad.push(spidyGulluImage);
 
             beamImages['ironMan'] = new Image();
-            beamImages['ironMan'].src = 'beam1.png';
+            beamImages['ironMan'].src = 'images/beam1.png';
             beamImages['greenHulk'] = new Image();
-            beamImages['greenHulk'].src = 'beam2.png';
+            beamImages['greenHulk'].src = 'images/beam2.png';
             beamImages['blackWidow'] = new Image();
-            beamImages['blackWidow'].src = 'beam3.png';
+            beamImages['blackWidow'].src = 'images/beam3.png';
             beamImages['captainAmerica'] = new Image();
-            beamImages['captainAmerica'].src = 'beam4.png';
+            beamImages['captainAmerica'].src = 'images/beam4.png';
             beamImages['pantherGullu'] = new Image();
-            beamImages['pantherGullu'].src = 'beam5.png';
+            beamImages['pantherGullu'].src = 'images/beam5.png';
             beamImages['spidyGullu'] = new Image();
-            beamImages['spidyGullu'].src = 'beam6.png';
+            beamImages['spidyGullu'].src = 'images/beam6.png';
 
             for (const key in beamImages) {
                 beamImages[key].onerror = () => beamImages[key].src = `https://placehold.co/20x20/ffffff/000000?text=B`;
@@ -1101,18 +998,18 @@
             const crackImageSmall = new Image();
             const crackImageMedium = new Image();
             const crackImageLarge = new Image();
-            crackImageSmall.src = 'crack3.png';
+            crackImageSmall.src = 'images/crack3.png';
             crackImageSmall.onerror = () => crackImageSmall.src = 'https://placehold.co/50x50/ffffff/000000?text=Crack';
-            crackImageMedium.src = 'crack6.png';
+            crackImageMedium.src = 'images/crack6.png';
             crackImageMedium.onerror = () => crackImageMedium.src = 'https://placehold.co/100x100/ffffff/000000?text=Crack';
-            crackImageLarge.src = 'crack5.png';
+            crackImageLarge.src = 'images/crack5.png';
             crackImageLarge.onerror = () => crackImageLarge.src = 'https://placehold.co/150x150/ffffff/000000?text=Crack';
             assetsToLoad.push(crackImageSmall, crackImageMedium, crackImageLarge);
 
             const earthFrameURLs = ['frame1.png', 'frame2.png', 'frame3.png', 'frame4.png', 'frame5.png', 'frame6.png'];
             for (let i = 0; i < earthFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = earthFrameURLs[i];
+                frameImage.src = 'images/' + earthFrameURLs[i];
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/100x100/3498db/ffffff?text=E${i+1}`;
                 earthFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1121,7 +1018,7 @@
             const lavaFrameURLs = ['star1.png', 'star2.png', 'star3.png', 'star4.png'];
             for (let i = 0; i < lavaFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = lavaFrameURLs[i];
+                frameImage.src = 'images/' + lavaFrameURLs[i];
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/50x50/ff6600/ffffff?text=Lava${i+1}`;
                 lavaFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1130,7 +1027,7 @@
             for (let i = 0; i < fireFrameCount; i++) {
                 const frameNumber = (51 + i).toString().padStart(4, '0');
                 const frameImage = new Image();
-                frameImage.src = `fire1_${frameNumber}.png`;
+                frameImage.src = `images/fire1_${frameNumber}.png`;
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/100x100/ff6600/ffffff?text=F${i}`;
                 fireFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1139,18 +1036,18 @@
             const smallAsteroidImage = new Image();
             const mediumAsteroidImage = new Image();
             const largeAsteroidImage = new Image();
-            smallAsteroidImage.src = 'small.png';
+            smallAsteroidImage.src = 'images/small.png';
             smallAsteroidImage.onerror = () => smallAsteroidImage.src = 'https://placehold.co/30x30/964B00/ffffff?text=S';
-            mediumAsteroidImage.src = 'medium.png';
+            mediumAsteroidImage.src = 'images/medium.png';
             mediumAsteroidImage.onerror = () => mediumAsteroidImage.src = 'https://placehold.co/50x50/964B00/ffffff?text=M';
-            largeAsteroidImage.src = 'large.png';
+            largeAsteroidImage.src = 'images/large.png';
             largeAsteroidImage.onerror = () => largeAsteroidImage.src = 'https://placehold.co/70x70/964B00/ffffff?text=L';
             assetsToLoad.push(smallAsteroidImage, mediumAsteroidImage, largeAsteroidImage);
 
             const coinFrameURLs = ['coin1.png', 'coin2.png', 'coin3.png', 'coin4.png', 'coin5.png', 'coin6.png'];
             for (let i = 0; i < coinFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = coinFrameURLs[i];
+                frameImage.src = 'images/' + coinFrameURLs[i];
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/50x50/ffd700/000000?text=C${i+1}`;
                 coinFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1159,7 +1056,7 @@
             const redBombFrameURLs = ['fatman1.png', 'fatman2.png', 'fatman3.png', 'fatman4.png', 'fatman5.png'];
             for (let i = 0; i < redBombFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = redBombFrameURLs[i];
+                frameImage.src = 'images/' + redBombFrameURLs[i];
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/50x50/ff0000/ffffff?text=B${i+1}`;
                 redBombFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1168,7 +1065,7 @@
             const heartFrameURLs = ['heart1.png', 'heart2.png', 'heart3.png', 'heart4.png', 'heart5.png', 'heart6.png'];
             for (let i = 0; i < heartFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = heartFrameURLs[i];
+                frameImage.src = 'images/' + heartFrameURLs[i];
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/50x50/00ff00/ffffff?text=H${i+1}`;
                 heartFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1177,7 +1074,7 @@
             const redAuraFrameURLs = ['red1.png', 'red2.png', 'red3.png', 'red4.png', 'red5.png', 'red6.png', 'red7.png', 'red8.png', 'red9.png', 'red10.png', 'red11.png', 'red12.png', 'red13.png'];
             for (let i = 0; i < redAuraFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = redAuraFrameURLs[i];
+                frameImage.src = 'images/' + redAuraFrameURLs[i];
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/50x50/ff0000/ffffff?text=R${i+1}`;
                 redAuraFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1186,7 +1083,7 @@
             const greenAuraFrameURLs = ['green1.png', 'green2.png', 'green3.png', 'green4.png', 'green5.png', 'green6.png', 'green7.png', 'green8.png', 'green9.png', 'green10.png', 'green11.png', 'green12.png', 'green13.png'];
             for (let i = 0; i < greenAuraFrameCount; i++) {
                  const frameImage = new Image();
-                 frameImage.src = greenAuraFrameURLs[i];
+                 frameImage.src = 'images/' + greenAuraFrameURLs[i];
                  frameImage.onerror = () => frameImage.src = `https://placehold.co/50x50/00ff00/ffffff?text=G${i+1}`;
                  greenAuraFrames.push(frameImage);
                  assetsToLoad.push(frameImage);
@@ -1195,7 +1092,7 @@
             const yellowAuraFrameURLs = ['yellow1.png', 'yellow2.png', 'yellow3.png', 'yellow4.png', 'yellow5.png', 'yellow6.png', 'yellow7.png', 'yellow8.png', 'yellow9.png', 'yellow10.png', 'yellow11.png', 'yellow12.png'];
             for (let i = 0; i < yellowAuraFrameCount; i++) {
                  const frameImage = new Image();
-                 frameImage.src = yellowAuraFrameURLs[i];
+                 frameImage.src = 'images/' + yellowAuraFrameURLs[i];
                  frameImage.onerror = () => frameImage.src = `https://placehold.co/50x50/ffff00/ffffff?text=Y${i+1}`;
                  yellowAuraFrames.push(frameImage);
                  assetsToLoad.push(frameImage);
@@ -1204,7 +1101,7 @@
             const rayAuraFrameURLs = ['ray1.png', 'ray2.png', 'ray3.png', 'ray4.png', 'ray5.png'];
             for (let i = 0; i < rayAuraFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = rayAuraFrameURLs[i];
+                frameImage.src = 'images/' + rayAuraFrameURLs[i];
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/50x50/ffff00/ffffff?text=RAY${i+1}`;
                 rayAuraFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1213,7 +1110,7 @@
             const wrenchFrameURLs = ['wrench1.png', 'wrench2.png', 'wrench3.png', 'wrench4.png', 'wrench5.png'];
             for (let i = 0; i < wrenchFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = wrenchFrameURLs[i];
+                frameImage.src = 'images/' + wrenchFrameURLs[i];
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/50x50/ffff00/ffffff?text=W${i+1}`;
                 wrenchFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1222,7 +1119,7 @@
             const blastFrameURLs = ['blast1.png', 'blast2.png', 'blast3.png', 'blast4.png', 'blast5.png', 'blast6.png', 'blast7.png', 'blast8.png', 'blast9.png', 'blast10.png', 'blast11.png', 'blast12.png', 'blast13.png', 'blast14.png', 'blast15.png'];
             for (let i = 0; i < blastFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = blastFrameURLs[i];
+                frameImage.src = 'images/' + blastFrameURLs[i];
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/100x100/ff9900/ffffff?text=Boom${i+1}`;
                 blastFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1230,7 +1127,7 @@
 
             for (let i = 1; i <= impactFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = `impact${i}.png`;
+                frameImage.src = `images/impact${i}.png`;
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/100x100/ff9900/ffffff?text=Impact${i}`;
                 impactFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1239,7 +1136,7 @@
             for (let i = 0; i < hitFrameCount; i++) {
                 const frameImage = new Image();
                 const frameNumber = i.toString().padStart(2, '0');
-                frameImage.src = `${frameNumber}_hit.png`;
+                frameImage.src = `images/${frameNumber}_hit.png`;
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/100x100/ff9900/ffffff?text=Hit${i}`;
                 hitFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1247,7 +1144,7 @@
 
             for (let i = 1; i <= earthExplosionFrameCount; i++) {
                 const frameImage = new Image();
-                frameImage.src = `explosion${i}.png`;
+                frameImage.src = `images/explosion${i}.png`;
                 frameImage.onerror = () => frameImage.src = `https://placehold.co/100x100/ff5733/ffffff?text=Boom${i}`;
                 earthExplosionFrames.push(frameImage);
                 assetsToLoad.push(frameImage);
@@ -1380,6 +1277,7 @@
                     console.error('Error in TTS API call:', error);
                 }
             }
+            
             const repairSynth = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.2, release: 0.3 } }).toDestination();
             const shimmerSynth = new Tone.MetalSynth({ frequency: 200, envelope: { attack: 0.001, decay: 0.2, release: 0.1 }, harmonicity: 3.1, modulationIndex: 10, resonance: 800, octaves: 1.5 }).toDestination();
             const pulseSynth = new Tone.MembraneSynth().toDestination();
@@ -1387,6 +1285,7 @@
             const coinSound = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.005, decay: 0.2, sustain: 0, release: 0.1 } }).toDestination();
             const lavaSound = new Tone.FMSynth({ harmonicity: 3.01, modulationIndex: 14, envelope: { attack: 0.2, decay: 0.3, sustain: 0.1, release: 1.2 }, modulation: { type: "square" }, modulationEnvelope: { attack: 0.2, decay: 0.1, sustain: 0.1, release: 0.1 } }).toDestination();
             const crackSound = new Tone.NoiseSynth({ noise: { type: "pink" }, envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+            
             function playClickSound() {
                 if (isMuted) return;
                 clickSound.currentTime = 0;
@@ -1445,7 +1344,6 @@
                 powerupTimerDisplay.style.display = 'none';
                 coinMultiplierTimerDisplay.style.display = 'none';
                 introOverlay.style.display = 'none';
-                mobileControls.style.display = 'none'; // Hide mobile controls by default
 
                 if (screenId === 'startScreen') { startScreen.style.display = 'flex'; }
                 else if (screenId === 'mainMenu') { mainMenuOverlay.style.display = 'flex'; }
@@ -1459,7 +1357,6 @@
                     homeButton.style.display = 'inline-block';
                     if (doubleBeamActive) powerupTimerDisplay.style.display = 'block';
                     if (doubleCoinsActive) coinMultiplierTimerDisplay.style.display = 'block';
-                    if (isTouchDevice()) mobileControls.style.display = 'block'; // Show controls on touch devices
                 } else if (screenId === 'intro') { introOverlay.style.display = 'flex'; }
             }
 
@@ -1482,10 +1379,12 @@
                 stopAllMusic();
                 playGameOverMusic();
             }
+
             function backToMainMenu() {
                 playClickSound();
                 showMainMenu();
             }
+
             function continueGame() {
                 playClickSound();
                 gamePaused = false;
@@ -1494,6 +1393,7 @@
                 if (!isMuted) gameMusic.play();
                 gameLoop();
             }
+
             function endGame(message) {
                 gameOver = true;
                 isGameStarted = false;
@@ -1513,6 +1413,7 @@
                 reviveBtn.innerHTML = `Revive (${reviveCost} Coins)`;
                 showGameOverMenu();
             }
+
             let introFrameId = null;
             let introActive = false;
             function resizeIntroCanvas() {
@@ -1587,16 +1488,8 @@
             }
 
             function resizeCanvas() {
-                // On mobile, use the full landscape window dimensions
-                if (isTouchDevice() && window.innerHeight < window.innerWidth) {
-                     canvas.width = window.innerWidth;
-                     canvas.height = window.innerHeight;
-                } else {
-                    // Original logic for desktop
-                    canvas.width = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.9);
-                    canvas.height = canvas.width;
-                }
-
+                canvas.width = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.9);
+                canvas.height = canvas.width;
                 maxPulseRadius = Math.max(canvas.width, canvas.height);
                 planet.x = canvas.width / 2;
                 planet.y = canvas.height / 2;
@@ -1661,8 +1554,8 @@
                 if (gameOver) return;
 
                 if (!hasPlayedShipSound) {
-                    hasPlayedShipSound = true;
-                     const currentShipSound = shipSounds[player.skin];
+                    hasPlayedShipSound = true; 
+                    const currentShipSound = shipSounds[player.skin];
                     if (currentShipSound) {
                         currentShipSound.currentTime = 0;
                         if (!isMuted) currentShipSound.play();
@@ -1769,6 +1662,7 @@
                 frameCount++;
                 animationFrameId = requestAnimationFrame(gameLoop);
             }
+
             function distance(x1, y1, x2, y2) { return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)); }
             function getAsteroidDamage(asteroid) {
                 let damage = { player: 0, earth: 0 };
@@ -1791,6 +1685,7 @@
                     if (auraTimer <= 0) { auraColor = null; }
                 }
             }
+
             function updatePulse() {
                 if (pulseActive) {
                     pulseRadius += 2.5;
@@ -1800,6 +1695,7 @@
                     }
                 }
             }
+
             function updateExplosionParticles() {
                 for (let i = explosionParticles.length - 1; i >= 0; i--) {
                     let p = explosionParticles[i];
@@ -1816,6 +1712,7 @@
                     if (earthCracks[i].timer <= 0) { earthCracks.splice(i, 1); }
                 }
             }
+
             function updateObjects() {
                 // Update beams
                 for (let i = beams.length - 1; i >= 0; i--) {
@@ -1917,6 +1814,7 @@
                             auraColor = 'redAura';
                             auraTimer = 5 * 60;
                             pulseSynth.triggerAttackRelease("C1", "2n");
+                            
                             gameMusic.pause();
                             waveSoundEffect.currentTime = 0;
                             if (!isMuted) waveSoundEffect.play();
@@ -2054,6 +1952,7 @@
                     const scaledHeight = nebulaImage2.height * scale;
                     nebula2.x += nebula2.speedX;
                     nebula2.y += nebula2.speedY;
+                    
                     if (nebula2.x < -scaledWidth || nebula2.y < -scaledHeight) {
                         if (Math.random() > 0.5) {
                             // Reset to a random Y on the right edge
@@ -2068,6 +1967,7 @@
                     ctx.drawImage(nebulaImage2, nebula2.x, nebula2.y, scaledWidth, scaledHeight);
                 }
             }
+
             function drawStars() {
                 stars.forEach(star => {
                     star.x -= nebula.speedX * 1.5;
@@ -2108,6 +2008,7 @@
                     }
                 });
             }
+
             function drawLavaCore() {
                 if (earthHealth < 100) {
                     const lavaRadius = planet.radius * (1 - earthHealth / 100);
@@ -2123,6 +2024,7 @@
                     }
                 }
             }
+
             function drawEarthExplosion() {
                 const frameIndex = Math.floor(currentEarthExplosionFrame);
                 if (frameIndex < earthExplosionFrameCount) {
@@ -2167,6 +2069,7 @@
                 drawCracks();
                 ctx.restore();
             }
+
             function drawIronMan(context, size) { if (ironManImage.complete) { context.drawImage(ironManImage, -size, -size, size * 2, size * 2); } }
             function drawGreenHulk(context, size) { if (greenHulkImage.complete) { context.drawImage(greenHulkImage, -size, -size, size * 2, size * 2); } }
             function drawBlackWidow(context, size) { if (blackWidowImage.complete) { context.drawImage(blackWidowImage, -size, -size, size * 2, size * 2); } }
@@ -2194,6 +2097,7 @@
                     context.restore();
                 }
             }
+
             function drawDoubleBeam(context, size) {
                 const firstWrenchImage = wrenchFrames[0];
                 if (firstWrenchImage && firstWrenchImage.complete) {
@@ -2216,6 +2120,7 @@
                     context.restore();
                 }
             }
+
             function drawCoinMultiplier(context, size) {
                 const firstCoinImage = coinFrames[0];
                 if (firstCoinImage && firstCoinImage.complete) {
@@ -2241,6 +2146,7 @@
                     context.restore();
                 }
             }
+
             function drawPlayer() {
                 if (isPlayerExploding) return;
                 if (auraColor) {
@@ -2304,6 +2210,7 @@
                     }
                 }
             }
+
             function drawPlayerExplosion() {
                 if (currentBlastFrame < blastFrameCount) {
                     const currentFrameImage = blastFrames[currentBlastFrame];
@@ -2320,6 +2227,7 @@
                     }
                 }
             }
+
             function drawImpactExplosions() {
                 for (let i = impactExplosions.length - 1; i >= 0; i--) {
                     let explosion = impactExplosions[i];
@@ -2355,6 +2263,7 @@
                     }
                 }
             }
+
             function drawAsteroids() {
                 asteroids.forEach(asteroid => {
                     if (asteroidTailImage.complete) {
@@ -2398,6 +2307,7 @@
                     }
                 });
             }
+
             function drawRedBombs() {
                 const currentFrameImage = redBombFrames[currentRedBombFrame];
                 redBombs.forEach(bomb => {
@@ -2431,6 +2341,7 @@
                     }
                 });
             }
+
             function drawPowerUps() {
                 powerUps.forEach(powerUp => {
                     const currentFrameImage = wrenchFrames[currentWrenchFrame];
@@ -2510,6 +2421,7 @@
                     }
                 });
             }
+
             function drawBeams() {
                 beams.forEach(beam => {
                     if (beam.image && beam.image.complete) {
@@ -2530,6 +2442,7 @@
                     }
                 });
             }
+
             function drawPulse() {
                 if (pulseActive) {
                     ctx.save();
@@ -2597,6 +2510,7 @@
                 let vy = speed * Math.sin(angleToCenter);
                 powerUps.push({ x, y, radius, vx, vy, color: '#ffff00' });
             }
+
             function spawnHealthPack() {
                 let radius = 8;
                 let angle = Math.random() * Math.PI * 2;
@@ -2608,6 +2522,7 @@
                 let vy = speed * Math.sin(angleToCenter);
                 healthPacks.push({ x, y, radius, vx, vy, color: '#00ff00' });
             }
+
             function spawnCoinMultiplier() {
                 let radius = 12;
                 let angle = Math.random() * Math.PI * 2;
@@ -2619,6 +2534,7 @@
                 let vy = speed * Math.sin(angleToCenter);
                 coinMultipliers.push({ x, y, radius, vx, vy, color: '#FFD700' });
             }
+
             // --- Shop Logic ---
             function showShopMessage(title, message) {
                 const messageBox = document.createElement('div');
@@ -2645,6 +2561,7 @@
                     }
                 }
             }
+
             function drawShopPowerups() {
                 const previewSize = 20;
                 for (const key in UPGRADES) {
@@ -2659,6 +2576,7 @@
                     }
                 }
             }
+
             function generateShopOptions() {
                 skinsOptionsContainer.innerHTML = '';
                 const currentSkin = localStorage.getItem('orbitDashCurrentSkin') || 'ironMan';
@@ -2818,6 +2736,7 @@
                 });
                 drawShopPowerups();
             }
+
             function showShopMenu() {
                 playClickSound();
                 previousScreen = 'mainMenu';
@@ -2870,11 +2789,6 @@
                     showScreen('game');
                     gameLoop();
                 }
-            }
-
-            // --- NEW: Mobile Helper Functions ---
-            function isTouchDevice() {
-                return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
             }
 
             // --- Event Listeners ---
@@ -2984,49 +2898,12 @@
                 if (e.key === 'q') { isQKeyPressed = false; }
             });
 
-            // --- NEW: Mobile Control Event Listeners ---
-            let fireInterval = null;
-            if (isTouchDevice()) {
-                fireBtn.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    if (!gameOver && !gamePaused && !fireInterval) {
-                        fireBeam(); // Fire immediately on touch
-                        fireInterval = setInterval(fireBeam, 200); // Then fire every 200ms
-                    }
-                });
-                fireBtn.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    clearInterval(fireInterval);
-                    fireInterval = null;
-                });
-                fireBtn.addEventListener('touchcancel', (e) => {
-                    e.preventDefault();
-                    clearInterval(fireInterval);
-                    fireInterval = null;
-                });
-
-                moveBtn.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    if (!gameOver && !gamePaused) {
-                        player.direction *= -1;
-                    }
-                });
-            }
-
             window.addEventListener('blur', () => {
                 if (!gameOver && !gamePaused && isGameStarted) {
                     gamePaused = true;
                     showMainMenu();
                 }
             });
-            
-            // Handle orientation changes
-            window.addEventListener('orientationchange', resizeCanvas);
-            window.addEventListener('resize', resizeCanvas);
-            
-            // Initial check
-            resizeCanvas();
-
         };
     </script>
 </body>
