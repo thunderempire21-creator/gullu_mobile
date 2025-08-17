@@ -811,6 +811,7 @@
 
             // --- Game State Variables ---
             let animationFrameId;
+            let lastTime = 0; // For delta time calculation
             let gamePaused = false;
             let isGameStarted = false;
             let score = 0;
@@ -833,13 +834,17 @@
             let redBombs = [];
             let coinMultipliers = [];
 
-            let asteroidSpawnRate = 75;
+            // Timers for spawning logic
+            let asteroidSpawnTimer = 0, powerUpSpawnTimer = 0, redBombSpawnTimer = 0, coinMultiplierSpawnTimer = 0, gameTime = 0;
+
+            // Spawn rates in seconds
+            let asteroidSpawnRate = 1.25;
             let asteroidSpeed = 1.0;
-            const powerUpSpawnInterval = 15 * 60;
-            const redBombSpawnInterval = 15 * 60;
-            const coinMultiplierSpawnInterval = 20 * 60;
-            const powerUpStartDelay = 10 * 60;
-            let frameCount = 0;
+            const powerUpSpawnInterval = 15;
+            const redBombSpawnInterval = 15;
+            const coinMultiplierSpawnInterval = 20;
+            const powerUpStartDelay = 10;
+            let frameCount = 0; // Keep for animations that are not time-critical
             let lastScoreIncrease = 0;
 
             let auraColor = null;
@@ -1493,7 +1498,8 @@
                 showScreen('game');
                 stopAllMusic();
                 if (!isMuted) gameMusic.play();
-                gameLoop();
+                lastTime = 0; // Reset delta time on continue
+                requestAnimationFrame(gameLoop);
             }
             function endGame(message) {
                 gameOver = true;
@@ -1617,9 +1623,17 @@
                 stopAllMusic();
                 hasPlayedShipSound = false;
                 isGameStarted = true;
-                asteroidSpeed = 1.0;
-                player.speed = 0.018;
-                asteroidSpawnRate = 75;
+                
+                // NEW: Adjust speeds for mobile
+                if (isTouchDevice()) {
+                    player.speed = 0.012; // Slower ship
+                    asteroidSpeed = 0.7;  // Slower asteroids
+                } else {
+                    player.speed = 0.018;
+                    asteroidSpeed = 1.0;
+                }
+                
+                asteroidSpawnRate = 1.25;
                 score = 0;
                 earthHealth = 100;
                 playerHealth = 100;
@@ -1650,16 +1664,36 @@
                 pulseRadius = 0;
                 reviveCount = 0;
                 previousScreen = 'game';
+
+                // Reset timers
+                lastTime = 0;
+                gameTime = 0;
+                asteroidSpawnTimer = 0;
+                powerUpSpawnTimer = 0;
+                redBombSpawnTimer = 0;
+                coinMultiplierSpawnTimer = 0;
+
                 scoreDisplay.innerText = score;
                 earthHealthDisplay.innerText = earthHealth;
                 playerHealthDisplay.innerText = playerHealth;
                 coinDisplay.innerText = coins;
-                gameLoop();
+                requestAnimationFrame(gameLoop);
             }
 
             // --- Main Game Loop ---
-            function gameLoop() {
+            function gameLoop(currentTime) {
                 if (gameOver) return;
+                if (gamePaused) {
+                    animationFrameId = requestAnimationFrame(gameLoop);
+                    return;
+                }
+
+                if (lastTime === 0) {
+                    lastTime = currentTime;
+                }
+                const deltaTime = (currentTime - lastTime) / 1000.0;
+                lastTime = currentTime;
+                gameTime += deltaTime;
 
                 if (!hasPlayedShipSound) {
                     hasPlayedShipSound = true;
@@ -1684,9 +1718,8 @@
                     stopAllMusic();
                     if (!isMuted) shipDestroySound.play();
                 }
-                if (gamePaused) return;
-
-                // --- Handle special states like explosions ---
+                
+                // Handle special states like explosions (can remain frame-based for simplicity)
                 if (isPlayerExploding) {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     drawNebulas();
@@ -1709,7 +1742,31 @@
                     return;
                 }
 
-                // --- Update Animation Frames ---
+                // Update Timers
+                if (doubleBeamActive && doubleBeamTimer > 0) {
+                    doubleBeamTimer -= deltaTime;
+                    powerupTimeSpan.innerText = Math.ceil(doubleBeamTimer);
+                    if (doubleBeamTimer <= 0) {
+                        doubleBeamActive = false;
+                        powerupTimerDisplay.style.display = 'none';
+                        if (auraColor === 'rayAura') auraColor = null;
+                    }
+                }
+                if (doubleCoinsActive && doubleCoinsTimer > 0) {
+                    doubleCoinsTimer -= deltaTime;
+                    coinMultiplierTimeSpan.innerText = Math.ceil(doubleCoinsTimer);
+                    if (doubleCoinsTimer <= 0) {
+                        doubleCoinsActive = false;
+                        coinMultiplierTimerDisplay.style.display = 'none';
+                        if (auraColor === 'yellowAura') auraColor = null;
+                    }
+                }
+                if (isPlayerOnFire && playerHealth > 0) {
+                    playerHealth -= 0.5 * deltaTime; // Damage per second
+                    playerHealthDisplay.innerText = Math.ceil(playerHealth);
+                }
+                
+                // Update Animation Frames (can remain frame-based for visual flair)
                 if (frameCount % earthAnimationSpeed === 0) { currentEarthFrame = (currentEarthFrame + 1) % earthFrameCount; }
                 if (frameCount % lavaAnimationSpeed === 0) { currentLavaFrame = (currentLavaFrame + 1) % lavaFrameCount; }
                 if (frameCount % fireAnimationSpeed === 0) { currentFireFrame = (currentFireFrame + 1) % fireFrameCount; }
@@ -1722,35 +1779,9 @@
                 if (frameCount % rayAuraAnimationSpeed === 0) { currentRayAuraFrame = (currentRayAuraFrame + 1) % rayAuraFrameCount; }
                 if (frameCount % wrenchAnimationSpeed === 0) { currentWrenchFrame = (currentWrenchFrame + 1) % wrenchFrameCount; }
 
-                // --- MODIFIED: Handle timers inside the game loop ---
-                if (frameCount % 60 === 0) { // Update timers roughly every second
-                    if (doubleBeamActive && doubleBeamTimer > 0) {
-                        doubleBeamTimer--;
-                        powerupTimeSpan.innerText = doubleBeamTimer;
-                        if (doubleBeamTimer <= 0) {
-                            doubleBeamActive = false;
-                            powerupTimerDisplay.style.display = 'none';
-                            if (auraColor === 'rayAura') auraColor = null;
-                        }
-                    }
-                    if (doubleCoinsActive && doubleCoinsTimer > 0) {
-                        doubleCoinsTimer--;
-                        coinMultiplierTimeSpan.innerText = doubleCoinsTimer;
-                        if (doubleCoinsTimer <= 0) {
-                            doubleCoinsActive = false;
-                            coinMultiplierTimerDisplay.style.display = 'none';
-                            if (auraColor === 'yellowAura') auraColor = null;
-                        }
-                    }
-                    if (isPlayerOnFire && playerHealth > 0) {
-                        playerHealth -= 0.5; // Damage per second
-                        playerHealthDisplay.innerText = Math.ceil(playerHealth);
-                    }
-                }
-
                 // --- Update and Draw ---
-                updatePlayer();
-                updateObjects();
+                updatePlayer(deltaTime);
+                updateObjects(deltaTime);
                 checkCollisions();
 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1779,22 +1810,24 @@
                 return damage;
             }
 
-            function updatePlayer() {
-                player.angle += player.speed * player.direction;
+            function updatePlayer(deltaTime) {
+                const speedMultiplier = 60; // To keep speed values in a familiar range
+                player.angle += player.speed * player.direction * speedMultiplier * deltaTime;
                 player.x = planet.x + player.orbitRadius * Math.cos(player.angle);
                 player.y = planet.y + player.orbitRadius * Math.sin(player.angle);
             }
 
-            function updateAura() {
+            function updateAura(deltaTime) {
                 if (auraTimer > 0) {
-                    auraTimer--;
+                    auraTimer -= deltaTime;
                     auraShimmer += 0.2;
                     if (auraTimer <= 0) { auraColor = null; }
                 }
             }
-            function updatePulse() {
+            function updatePulse(deltaTime) {
                 if (pulseActive) {
-                    pulseRadius += 2.5;
+                    const speedMultiplier = 60;
+                    pulseRadius += 2.5 * speedMultiplier * deltaTime;
                     if (pulseRadius > maxPulseRadius) {
                         pulseActive = false;
                         pulseRadius = 0;
@@ -1817,12 +1850,13 @@
                     if (earthCracks[i].timer <= 0) { earthCracks.splice(i, 1); }
                 }
             }
-            function updateObjects() {
+            function updateObjects(deltaTime) {
+                const speedMultiplier = 60;
                 // Update beams
                 for (let i = beams.length - 1; i >= 0; i--) {
                     let beam = beams[i];
-                    beam.x += beam.vx;
-                    beam.y += beam.vy;
+                    beam.x += beam.vx * speedMultiplier * deltaTime;
+                    beam.y += beam.vy * speedMultiplier * deltaTime;
                     if (beam.x < -20 || beam.x > canvas.width + 20 || beam.y < -20 || beam.y > canvas.height + 20) {
                         beams.splice(i, 1);
                     }
@@ -1830,8 +1864,8 @@
                 // Update asteroids
                 for (let i = asteroids.length - 1; i >= 0; i--) {
                     let asteroid = asteroids[i];
-                    asteroid.x += asteroid.vx;
-                    asteroid.y += asteroid.vy;
+                    asteroid.x += asteroid.vx * speedMultiplier * deltaTime;
+                    asteroid.y += asteroid.vy * speedMultiplier * deltaTime;
                     if (distance(asteroid.x, asteroid.y, planet.x, planet.y) < planet.radius + asteroid.radius) {
                         if (!isMuted) hitSound.play();
                         const damage = getAsteroidDamage(asteroid);
@@ -1855,8 +1889,8 @@
                 [redBombs, powerUps, healthPacks, coinMultipliers].forEach(array => {
                     for (let i = array.length - 1; i >= 0; i--) {
                         let object = array[i];
-                        object.x += object.vx;
-                        object.y += object.vy;
+                        object.x += object.vx * speedMultiplier * deltaTime;
+                        object.y += object.vy * speedMultiplier * deltaTime;
                         if (distance(object.x, object.y, planet.x, planet.y) < planet.radius + object.radius) {
                             array.splice(i, 1);
                         } else if (object.x < -20 || object.x > canvas.width + 20 || object.y < -20 || object.y > canvas.height + 20) {
@@ -1865,11 +1899,11 @@
                     }
                 });
 
-                updateAura();
-                updatePulse();
+                updateAura(deltaTime);
+                updatePulse(deltaTime);
                 updateExplosionParticles();
                 updateCracks();
-                spawnObjects();
+                spawnObjects(deltaTime);
             }
 
             function checkCollisions() {
@@ -1895,8 +1929,8 @@
                             }
                             if (score > lastScoreIncrease && score % 20 === 0) {
                                  asteroidSpeed += 0.05;
-                                if (asteroidSpawnRate > 25) {
-                                    asteroidSpawnRate -= 2;
+                                if (asteroidSpawnRate > 0.4) {
+                                    asteroidSpawnRate -= 0.02;
                                 }
                             }
                             hitExplosions.push({ x: asteroid.x, y: asteroid.y, radius: asteroid.radius, currentFrame: 0 });
@@ -1916,7 +1950,7 @@
                             pulseActive = true;
                             pulseRadius = planet.radius;
                             auraColor = 'redAura';
-                            auraTimer = 5 * 60;
+                            auraTimer = 5;
                             pulseSynth.triggerAttackRelease("C1", "2n");
                             gameMusic.pause();
                             waveSoundEffect.currentTime = 0;
@@ -1934,13 +1968,12 @@
                             beams.splice(i, 1);
                             powerUps.splice(j, 1);
                             auraColor = 'rayAura';
-                            auraTimer = (UPGRADES.doubleBeam.base_duration + (UPGRADES.doubleBeam.level_duration_increase * doubleBeamUpgradeLevel)) * 60;
+                            auraTimer = (UPGRADES.doubleBeam.base_duration + (UPGRADES.doubleBeam.level_duration_increase * doubleBeamUpgradeLevel));
                             shimmerSynth.triggerAttackRelease("C5", "8n");
-                            // --- MODIFIED: Removed setInterval, timers handled in gameLoop ---
                             if (!doubleBeamActive) {
                                 doubleBeamActive = true;
                                 doubleBeamTimer = UPGRADES.doubleBeam.base_duration + (UPGRADES.doubleBeam.level_duration_increase * doubleBeamUpgradeLevel);
-                                powerupTimeSpan.innerText = doubleBeamTimer;
+                                powerupTimeSpan.innerText = Math.ceil(doubleBeamTimer);
                                 powerupTimerDisplay.style.display = 'block';
                             }
                             beamRemoved = true;
@@ -1955,7 +1988,7 @@
                             beams.splice(i, 1);
                             healthPacks.splice(j, 1);
                             auraColor = 'greenAura';
-                            auraTimer = 2 * 60;
+                            auraTimer = 2;
                             repairSynth.triggerAttackRelease("C6", "4n");
                             let health_restore = UPGRADES.health.base_restore + (UPGRADES.health.level_restore_increase * healthUpgradeLevel);
                             playerHealth += health_restore;
@@ -1975,13 +2008,12 @@
                             beams.splice(i, 1);
                             coinMultipliers.splice(j, 1);
                             auraColor = 'yellowAura';
-                            auraTimer = (UPGRADES.coinMultiplier.base_duration + (UPGRADES.coinMultiplier.level_duration_increase * coinMultiplierUpgradeLevel)) * 60;
+                            auraTimer = (UPGRADES.coinMultiplier.base_duration + (UPGRADES.coinMultiplier.level_duration_increase * coinMultiplierUpgradeLevel));
                             coinSound.triggerAttackRelease("G6", "4n");
-                            // --- MODIFIED: Removed setInterval ---
                             if (!doubleCoinsActive) {
                                 doubleCoinsActive = true;
                                 doubleCoinsTimer = UPGRADES.coinMultiplier.base_duration + (UPGRADES.coinMultiplier.level_duration_increase * coinMultiplierUpgradeLevel);
-                                coinMultiplierTimeSpan.innerText = doubleCoinsTimer;
+                                coinMultiplierTimeSpan.innerText = Math.ceil(doubleCoinsTimer);
                                 coinMultiplierTimerDisplay.style.display = 'block';
                             }
                             beamRemoved = true;
@@ -2027,7 +2059,7 @@
             // --- Drawing Functions ---
             function createStars() {
                 stars = [];
-                const starCount = 800;
+                const starCount = isTouchDevice() ? 200 : 800;
                 for (let i = 0; i < starCount; i++) {
                     stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, radius: Math.random() * 1.5, opacity: Math.random() });
                 }
@@ -2140,15 +2172,16 @@
 
             function drawPlanet() {
                 if (isExploding) return;
+                const shadowBlur = isTouchDevice() ? 15 : 30;
                 const currentFrameImage = earthFrames[currentEarthFrame];
                 if (currentFrameImage && currentFrameImage.complete) {
                     ctx.shadowColor = '#00ccff';
-                    ctx.shadowBlur = 30;
+                    ctx.shadowBlur = shadowBlur;
                     ctx.drawImage(currentFrameImage, planet.x - planet.radius, planet.y - planet.radius, planet.radius * 2, planet.radius * 2);
                     ctx.shadowBlur = 0;
                 } else {
                     ctx.shadowColor = '#00ccff';
-                    ctx.shadowBlur = 30;
+                    ctx.shadowBlur = shadowBlur;
                     const gradient = ctx.createRadialGradient(planet.x, planet.y, 0, planet.x, planet.y, planet.radius);
                     gradient.addColorStop(0, '#4CAF50');
                     gradient.addColorStop(0.7, '#2196F3');
@@ -2357,6 +2390,7 @@
                 }
             }
             function drawAsteroids() {
+                const shadowBlur = isTouchDevice() ? 8 : 15;
                 asteroids.forEach(asteroid => {
                     if (asteroidTailImage.complete) {
                         const angle = Math.atan2(asteroid.vy, asteroid.vx);
@@ -2386,7 +2420,7 @@
                         ctx.restore();
                     } else {
                         ctx.shadowColor = 'rgba(255, 0, 0, 0.7)';
-                        ctx.shadowBlur = 15;
+                        ctx.shadowBlur = shadowBlur;
                         ctx.beginPath();
                         const gradient = ctx.createRadialGradient(asteroid.x, asteroid.y, asteroid.radius * 0.2, asteroid.x, asteroid.y, asteroid.radius);
                         gradient.addColorStop(0, '#a9a9a9');
@@ -2546,18 +2580,31 @@
             }
 
             // --- Spawning Logic ---
-            function spawnObjects() {
-                if (frameCount % asteroidSpawnRate === 0) spawnAsteroid();
-                if (frameCount > powerUpStartDelay) {
-                    if (frameCount % (15 * 60) === 0) {
+            function spawnObjects(deltaTime) {
+                asteroidSpawnTimer += deltaTime;
+                if (asteroidSpawnTimer >= asteroidSpawnRate) {
+                    spawnAsteroid();
+                    asteroidSpawnTimer = 0;
+                }
+
+                if (gameTime > powerUpStartDelay) {
+                    powerUpSpawnTimer += deltaTime;
+                    if (powerUpSpawnTimer >= powerUpSpawnInterval) {
                         spawnPowerUp();
                         spawnHealthPack();
+                        powerUpSpawnTimer = 0;
                     }
-                    if (frameCount % (15 * 60) === 0) {
+
+                    redBombSpawnTimer += deltaTime;
+                    if (redBombSpawnTimer >= redBombSpawnInterval) {
                         spawnRedBomb();
+                        redBombSpawnTimer = 0;
                     }
-                    if (frameCount % (20 * 60) === 0) {
+
+                    coinMultiplierSpawnTimer += deltaTime;
+                    if (coinMultiplierSpawnTimer >= coinMultiplierSpawnInterval) {
                         spawnCoinMultiplier();
+                        coinMultiplierSpawnTimer = 0;
                     }
                 }
             }
@@ -2869,7 +2916,8 @@
                 else if (previousScreen === 'game') {
                     gamePaused = false;
                     showScreen('game');
-                    gameLoop();
+                    lastTime = 0; // Reset delta time
+                    requestAnimationFrame(gameLoop);
                 }
             }
 
@@ -2925,7 +2973,8 @@
                         gamePaused = false;
                         showScreen('game');
                         hasPlayedShipSound = false; // Allow ship sound to play again
-                        gameLoop();
+                        lastTime = 0; // Reset delta time
+                        requestAnimationFrame(gameLoop);
                     };
                 } else {
                     showShopMessage('Insufficient Funds', `You do not have enough coins for a revive. Current cost is ${reviveCost} coins.`);
