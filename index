@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+ <html lang="en">
+ <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avenger: Gullu Games</title>
+    <!-- Tone.js for sound effects and music -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0d0d1a;
+            font-family: 'Orbitron', sans-serif;
+            color: #fff;
+            position: relative;
+        }
+        canvas {
+            display: block;
+            border: 2px solid #5a5a7a;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+            background: radial-gradient(circle at center, #1a1a33 0%, #0d0d1a 100%);
+            z-index: 1;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(13, 13, 26, 0.9);
+            z-index: 100;
+        }
+        /* Loading Spinner */
+        #loading-overlay {
+            background: radial-gradient(ellipse at center, #1b2735 0%, #090a0f 100%);
+        }
+        .loader {
+            border: 8px solid #4a4a6a; /* Darker grey */
+            border-top: 8px solid #00ffcc; /* Neon accent */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Updated styling for the start screen */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #1b2735 0%, #090a0f 100%);
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            gap: 4rem;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        #start-screen-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4rem;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        #start-screen h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
+            margin: 0;
+            text-align: center;
+        }
+        /* Play button styling */
+        #start-play-btn {
+            background: linear-gradient(45deg, #00aaff, #00ffcc);
+            border: none;
+            color: #0d0d1a;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
+            margin: 0;
+            transition: all 0.3s ease;
+        }
+        #start-play-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 8px 8px 20px rgba(0, 255, 204, 0.6);
+        }
+        #game-info-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #game-info {
+            font-size: 1.5rem;
+            color: #00ffcc;
+            text-shadow: 0 0 5px #00ffcc;
+            font-weight: 700;
+        }
+        #player-health-info {
+            font-size: 1.2rem;
+            color: #FFD700;
+            text-shadow: 0 0 5px #FFD700;
+            font-weight: 700;
+        }
+        #coin-info {
+            font-size: 1.2rem;
+            color: #FFD700;
+            text-shadow: 0 0 5px #FFD700;
+            font-weight: 700;
+        }
+        #earth-health-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            color: #ff3366;
+            text-shadow: 0 0 5px #ff3366;
+            z-index: 10;
+            display: none;
+        }
+        #high-score-info {
+            font-size: 1.2rem;
+            color: #FFD700;
+            text-shadow: 0 0 5px #FFD700;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        #powerup-timer {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            color: #ffff00;
+            text-shadow: 0 0 5px #ffff00;
+            z-index: 10;
+            font-weight: 700;
+            display: none;
+        }
+        #coin-multiplier-timer {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            color: #FFD700;
+            text-shadow: 0 0 5px #FFD700;
+            z-index: 10;
+            font-weight: 700;
+            display: none;
+        }
+        .message-box {
+            background: rgba(13, 13, 26, 0.9);
+            border: 2px solid #00ffcc;
+            padding: 2rem 3rem;
+            text-align: center;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+            animation: fadeIn 0.5s ease-in-out;
+            max-width: 90%;
+            z-index: 101;
+        }
+        #shop-menu, #instructions-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: radial-gradient(circle at center, rgba(100, 100, 150, 0.5) 0%, rgba(13, 13, 26, 0.9) 100%);
+            padding: 2rem;
+            border: 2px solid #ff3366;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+            width: 100%;
+            max-width: 600px;
+            height: 80%;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+        #instructions-menu h3 {
+            color: #00ffcc;
+            margin-top: 2rem;
+            text-shadow: 0 0 5px #00ffcc;
+        }
+        #instructions-menu p {
+            font-size: 1rem;
+            text-align: left;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .shop-tabs {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        .tab-button {
+            background: #2a2a40;
+            color: #00ffcc;
+            border: 2px solid #00ffcc;
+            border-radius: 10px 10px 0 0;
+            padding: 0.75rem 1.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background: #00ffcc;
+            color: #0d0d1a;
+        }
+        #skins-tab:hover, #powerups-tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 -5px 15px rgba(0, 255, 204, 0.4);
+        }
+        #skins-options-container, #powerups-options-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            align-items: center;
+        }
+        .skin-option, .upgrade-option {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid #00ffcc;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            width: 80%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .skin-option:hover, .upgrade-option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+        }
+        .skin-option.locked, .upgrade-option.locked {
+            filter: grayscale(100%);
+            cursor: not-allowed;
+            border-color: #ff3366;
+        }
+        .skin-option.selected {
+            border-color: #ffff00;
+            box-shadow: 0 0 15px #ffff00;
+        }
+        .upgrade-option p {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin: 0;
+        }
+        .skin-option-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 1rem;
+        }
+        .unlock-cost {
+            font-size: 0.9rem;
+            color: #FFD700;
+            text-shadow: 0 0 5px #FFD700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .purchase-button {
+            background: linear-gradient(45deg, #FFD700, #ffcc00);
+            border: none;
+            color: #0d0d1a;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            border-radius: 50px;
+            box-shadow: 0 3px 10px rgba(255, 215, 0, 0.4);
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+        .purchase-button:hover {
+            transform: translateY(-2px);
+        }
+        .shop-header {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #ffff00;
+        }
+        .shop-buttons {
+            margin-top: 1rem;
+        }
+        .message-box h2 {
+            font-size: 2.5rem;
+            color: #ff3366;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px #ff3366;
+        }
+        .message-box p {
+            font-size: 1.2rem;
+            margin: 0.5rem 0;
+            color: #fff;
+        }
+        .message-box.instructions h2 {
+            font-size: 2rem;
+            color: #00ffcc;
+        }
+        .message-box.instructions p {
+            font-size: 1rem;
+        }
+        .shop-menu h2 {
+            font-size: 2rem;
+        }
+        .button {
+            background: linear-gradient(45deg, #00aaff, #00ffcc);
+            border: none;
+            color: #0d0d1a;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 8px 8px 20px rgba(0, 255, 204, 0.6);
+        }
+        #revive-btn.revive-locked {
+            background: linear-gradient(45deg, #6b4d34, #8b6b4e);
+            box-shadow: 0 5px 15px rgba(139, 107, 78, 0.4);
+            cursor: not-allowed;
+            filter: grayscale(80%);
+        }
+        #revive-btn.revive-locked:hover {
+            transform: none;
+            box-shadow: 0 5px 15px rgba(139, 107, 78, 0.4);
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        #home-button {
+            display: none;
+        }
+        #instructions-button {
+            display: none;
+        }
+        .game-controls-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 10;
+            display: none;
+            gap: 10px;
+        }
+        #continue-game-btn {
+            background: linear-gradient(45deg, #FFD700, #ffcc00);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+        #continue-game-btn:hover {
+            box-shadow: 8px 8px 20px rgba(255, 215, 0, 0.6);
+        }
+        .instructions-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+            width: 100%;
+        }
+        .instructions-list li {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 3px solid #00ffcc;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        #intro-overlay {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+            background-color: #090a0f;
+            background-size: auto;
+            background-position: center;
+        }
+        #intro-title {
+            font-size: 3.5rem;
+            color: #fff;
+            text-shadow: 0 0 15px #00ffcc;
+            opacity: 0;
+            animation: fadeInTitle 1s forwards;
+            animation-delay: 0.5s;
+        }
+        #intro-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 5;
+        }
+        #intro-presented-by {
+            font-size: 1.5rem;
+            color: #FFD700;
+            text-shadow: 0 0 10px #FFD700;
+            opacity: 0;
+            margin-top: 2rem;
+            animation: fadeInPresentedBy 1s forwards;
+            animation-delay: 2.5s;
+        }
+        @keyframes fadeInTitle {
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes fadeInPresentedBy {
+            to {
+                opacity: 1;
+            }
+        }
+        @media (min-width: 768px) {
+            #start-screen h1 {
+                font-size: 4rem;
+            }
+        }
+    </style>
+ </head>
+ <body>
+    <div id="loading-overlay" class="ui-overlay" style="display: flex; z-index: 9999;">
+        <div class="loader"></div>
+    </div>
+    <div class="game-container">
+        <!-- Updated Start Screen -->
+        <div id="start-screen">
+             <div id="start-screen-content">
+                 <h1>Avenger: Gullu Games</h1>
+                 <button id="start-play-btn" class="button">Play</button>
+             </div>
+        </div>
+        <!-- Game UI Elements -->
+        <div id="game-info-container">
+            <div id="game-info">Score: <span id="score">0</span></div>
+            <div id="player-health-info">Player Health: <span id="player-health">100</span>%</div>
+            <div id="coin-info">Coins: <span id="coins">0</span></div>
+        </div>
+        <div id="earth-health-info">Earth Health: <span id="earth-health">100</span>%</div>
+        <div id="powerup-timer">Double Beam Active: <span id="powerup-time"></span>s</div>
+        <div id="coin-multiplier-timer">Coin Multiplier Active: <span id="coin-multiplier-time"></span>s</div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="game-controls-container">
+            <button id="home-button" class="button">Home</button>
+        </div>
+        <!-- UI Overlays -->
+        <div id="intro-overlay" class="ui-overlay">
+            <canvas id="intro-canvas"></canvas>
+            <div style="position: relative; z-index: 10;">
+                <h2 id="intro-title">Avenger: Gullu Games</h2>
+                <p id="intro-presented-by">Presented by Gullu Games</p>
+            </div>
+        </div>
+        <div id="main-menu-overlay" class="ui-overlay">
+            <div id="main-menu-box" class="message-box">
+                <h2>Avenger: Gullu Games</h2>
+                <div id="high-score-info">High Score: <span id="high-score">0</span></div>
+                <p>
+                    Press <b>SPACEBAR</b> to reverse your orbit direction.
+                    <br>
+                    Press <b>Q</b> to fire a beam.
+                </p>
+                <div class="button-group">
+                    <button class="button" id="start-game-btn">New Game</button>
+                    <button class="button" id="instructions-btn-menu">Instructions</button>
+                    <button class="button" id="shop-btn">Shop</button>
+                    <button class="button" id="continue-game-btn" style="display:none;">Continue</button>
+                </div>
+            </div>
+        </div>
+        <div id="game-over-overlay" class="ui-overlay">
+            <div class="message-box">
+                <h2 id="game-over-title"></h2>
+                <p id="game-over-message"></p>
+                <div class="button-group">
+                    <button class="button" id="revive-btn">Revive</button>
+                    <button class="button" id="instructions-btn-gameover">Instructions</button>
+                    <button class="button" id="new-game-btn">New Game</button>
+                </div>
+            </div>
+        </div>
+        <div id="shop-menu-overlay" class="ui-overlay">
+            <div id="shop-menu" class="message-box">
+                <h2 class="shop-header">Shop</h2>
+                <div class="shop-tabs">
+                    <button class="tab-button active" id="skins-tab">Skins</button>
+                    <button class="tab-button" id="powerups-tab">Power-ups</button>
+                </div>
+                <div id="skins-options-container">
+                    <!-- Skin options will be injected here -->
+                </div>
+                <div id="powerups-options-container" style="display:none;">
+                    <!-- Power-up options will be injected here -->
+                </div>
+                <div class="button-group shop-buttons">
+                    <button class="button" id="shop-back-btn">Back</button>
+                </div>
+            </div>
+        </div>
+        <!-- New Instructions Overlay -->
+        <div id="instructions-overlay" class="ui-overlay">
+            <div id="instructions-menu" class="message-box instructions">
+                <h2 class="shop-header">Instructions</h2>
+                <ul class="instructions-list">
+                    <li>
+                        <h3>Game Controls</h3>
+                        <p>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L2 12h5l-3 3h14l-3-3h5L12 2zM12 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="#00ffcc"/>
+                            </svg>
+                            <b>SPACEBAR:</b> Reverses your ship's orbit direction around the planet.
+                        </p>
+                        <p>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2v20M5 12h14" stroke="#00ffcc" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <b>Q:</b> Fires a beam to destroy asteroids and collect power-ups.
+                        </p>
+                    </li>
+                    <li>
+                        <h3>Power-ups</h3>
+                        <p>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13 2H11V12H2V14H11V22H13V14H22V12H13V2Z" fill="#ffff00"/>
+                            </svg>
+                            <b>Double Beam (yellow):</b> Collect these to temporarily fire two beams at once, doubling your firepower. You can upgrade the duration of this effect in the shop.</p>
+                        </p>
+                        <p>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="#00FF00"/>
+                            </svg>
+                            <b>Health Pack (green):</b> Shoot these to restore a portion of your player's health. You can upgrade the amount of health restored in the shop.
+                        </p>
+                        <p>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c-1.1 0-2-.9-2 2s.9-2 2-2 2 .9 2 2-.9 2-2-2zm-5-3h10v2H7v-2z" fill="#ff3366"/>
+                            </svg>
+                            <b>Red Bomb:</b> Shooting this will cause a massive pulse wave from the center of the planet, destroying all asteroids on the screen.
+                        </p>
+                        <p>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h2v-2h-2v2zm0-4h2V7h-2v6z" fill="#FFD700"/>
+                            </svg>
+                            <b>Coin Multiplier (golden coin):</b> Collect this to temporarily double the coins you earn from destroying asteroids. You can upgrade the duration of this effect in the shop.
+                        </p>
+                    </li>
+                    <li>
+                        <h3>Objective</h3>
+                        <p>Your goal is to protect the planet! Destroy incoming asteroids before they hit the planet or your ship. Earn coins and high scores to unlock new skins and upgrade your power-ups in the shop.</p>
+                    </li>
+                </ul>
+                <div class="button-group shop-buttons">
+                    <button class="button" id="instructions-back-btn">Back</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.onload = function () {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreDisplay = document.getElementById('score');
+            const earthHealthDisplay = document.getElementById('earth-health');
+            const playerHealthDisplay = document.getElementById('player-health');
+            const gameInfoContainer = document.getElementById('game-info-container');
+            const earthHealthInfo = document.getElementById('earth-health-info');
+            const powerupTimerDisplay = document.getElementById('powerup-timer');
+            const powerupTimeSpan = document.getElementById('powerup-time');
+            const highScoreDisplay = document.getElementById('high-score');
+            const gameControlsContainer = document.querySelector('.game-controls-container');
+            const homeButton = document.getElementById('home-button');
+            const coinDisplay = document.getElementById('coins');
+            const coinMultiplierTimerDisplay = document.getElementById('coin-multiplier-timer');
+            const coinMultiplierTimeSpan = document.getElementById('coin-multiplier-time');
+            const startScreen = document.getElementById('start-screen');
+            const startPlayBtn = document.getElementById('start-play-btn');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const startScreenContent = document.getElementById('start-screen-content');
+            const introOverlay = document.getElementById('intro-overlay');
+            const introCanvas = document.getElementById('intro-canvas');
+            const introCtx = introCanvas.getContext('2d');
+            const mainMenuOverlay = document.getElementById('main-menu-overlay');
+            const gameOverOverlay = document.getElementById('game-over-overlay');
+            const shopMenuOverlay = document.getElementById('shop-menu-overlay');
+            const instructionsOverlay = document.getElementById('instructions-overlay');
+            const skinsOptionsContainer = document.getElementById('skins-options-container');
+            const powerupsOptionsContainer = document.getElementById('powerups-options-container');
+            const skinsTabBtn = document.getElementById('skins-tab');
+            const powerupsTabBtn = document.getElementById('powerups-tab');
+            const startGameBtnInMenu = document.getElementById('start-game-btn');
+            const newGameBtn = document.getElementById('new-game-btn');
+            const continueGameBtnInMenu = document.getElementById('continue-game-btn');
+            const shopBtn = document.getElementById('shop-btn');
+            const shopBackBtn = document.getElementById('shop-back-btn');
+            const instructionsBtnMenu = document.getElementById('instructions-btn-menu');
+            const instructionsBtnGameover = document.getElementById('instructions-btn-gameover');
+            const instructionsBackBtn = document.getElementById('instructions-back-btn');
+            const reviveBtn = document.getElementById('revive-btn');
+            // --- Game State Variables ---
+            let animationFrameId;
+            let gamePaused = false;
+            let isGameStarted = false;
+            let score = 0;
+            let currentHighScore = parseInt(localStorage.getItem('orbitDashHighScore') || 0);
+            let coins = parseInt(localStorage.getItem('orbitDashCoins') || 0);
+            let earthHealth = 100;
+            let playerHealth = 100;
+            let gameOver = false;
+            let doubleBeamActive = false;
+            let doubleBeamTimer = 0;
+            let doubleCoinsActive = false;
+            let doubleCoinsTimer = 0;
+            let asteroids = [];
+            let powerUps = [];
+            let healthPacks = [];
+            let beams = [];
+            let stars = [];
+            let redBombs = [];
+            let coinMultipliers = [];
+            let asteroidSpawnRate = 50;
+            let asteroidSpeed = 0.8;
+            // Set power-up spawn rates in frames
+            const powerUpSpawnInterval = 15 * 60;
+            const redBombSpawnInterval = 15 * 60;
+            const coinMultiplierSpawnInterval = 20 * 60;
+            const powerUpStartDelay = 10 * 60;
+            let frameCount = 0;
+            let lastScoreIncrease = 0;
+            let auraColor = null;
+            let auraTimer = 0;
+            let auraShimmer = 0;
+            let pulseActive = false;
+            let pulseRadius = 0;
+            let maxPulseRadius;
+            let reviveCount = 0;
+            let previousScreen = 'mainMenu';
+            let lastLavaSoundTime = 0;
+            const lavaSoundCooldown = 0.5;
+            let isExploding = false;
+            // --- Earth Animation Variables ---
+            let earthFrames = [];
+            const earthFrameCount = 6;
+            let currentEarthFrame = 0;
+            const earthAnimationSpeed = 15; // Slower animation speed
+            const planet = { x: 0, y: 0, radius: 50 };
+            let earthCracks = []; // New array to store crack objects
+            let explosionParticles = []; // New array for explosion particles
+            // --- Coin Animation Variables ---
+            let coinFrames = [];
+            const coinFrameCount = 6;
+            let currentCoinFrame = 0;
+            const coinAnimationSpeed = 10; // Animation speed for the coin
+            let player = {
+                x: 0,
+                y: 0,
+                orbitRadius: 100,
+                angle: 0,
+                speed: 0.025,
+                direction: 1,
+                size: 15,
+                skin: localStorage.getItem('orbitDashCurrentSkin') || 'ironMan'
+            };
+            // --- Sound cooldown variables ---
+            let lastCrashTime = 0;
+            let lastAsteroidHitTime = 0;
+            const soundCooldown = 0.05;
+            const SKINS = {
+                'ironMan': { name: 'Iron Gullu', price: 0, draw: drawIronMan },
+                'greenHulk': { name: 'Green Gullu', price: 70, draw: drawGreenHulk },
+                'blackWidow': { name: 'Gullu Widow', price: 100, draw: drawBlackWidow },
+                'captainAmerica': { name: 'Captain Gullu', price: 200, high_score_req: 50, draw: drawCaptainAmerica }
+            };
+            let unlockedSkins = JSON.parse(localStorage.getItem('orbitDashUnlockedSkins')) || ['ironMan'];
+            // --- Power-up Upgrades ---
+            const UPGRADES = {
+                'health': {
+                    name: 'Health Pack',
+                    description: 'Increases health restored by green packs.',
+                    max_level: 5,
+                    base_restore: 10,
+                    level_restore_increase: 5,
+                    cost_increase: 30,
+                    draw: drawHealthPack,
+                },
+                'doubleBeam': {
+                    name: 'Double Beam',
+                    description: 'Increases the duration of the power-up.',
+                    max_duration: 30,
+                    base_duration: 10,
+                    level_duration_increase: 5,
+                    cost_increase: 35,
+                    draw: drawDoubleBeam,
+                },
+                'coinMultiplier': {
+                    name: 'Coin Multiplier',
+                    description: 'Increases the duration of the coin multiplier effect.',
+                    max_duration: 30,
+                    base_duration: 10,
+                    level_duration_increase: 5,
+                    cost_increase: 35,
+                    draw: drawCoinMultiplier
+                }
+            };
+            let healthUpgradeLevel = parseInt(localStorage.getItem('healthUpgradeLevel') || 0);
+            let doubleBeamUpgradeLevel = parseInt(localStorage.getItem('doubleBeamUpgradeLevel') || 0);
+            let coinMultiplierUpgradeLevel = parseInt(localStorage.getItem('coinMultiplierUpgradeLevel') || 0);
+            
+            // --- Asset Loading ---
+            const assetsToLoad = [];
+            const ironManImage = new Image();
+            ironManImage.src = 'https://i.ibb.co/bB5pTj3/ironman-sprite.png';
+            ironManImage.onerror = () => ironManImage.src = 'https://placehold.co/100x100/ff0000/ffffff?text=IronMan';
+            assetsToLoad.push(ironManImage);
+            
+            // NEW: Hulk, Widow, Captain America images
+            const greenHulkImage = new Image();
+            greenHulkImage.src = 'https://i.ibb.co/P9pLwSg/hulk-sprite.png'; 
+            greenHulkImage.onerror = () => greenHulkImage.src = 'https://placehold.co/100x100/00ff00/ffffff?text=Hulk';
+            assetsToLoad.push(greenHulkImage);
+
+            const blackWidowImage = new Image();
+            blackWidowImage.src = 'https://i.ibb.co/yBvC3yB/widow-sprite.png';
+            blackWidowImage.onerror = () => blackWidowImage.src = 'https://placehold.co/100x100/000000/ffffff?text=Widow';
+            assetsToLoad.push(blackWidowImage);
+
+            const captainAmericaImage = new Image();
+            captainAmericaImage.src = 'https://i.ibb.co/2Z5d0yT/captain-sprite.png';
+            captainAmericaImage.onerror = () => captainAmericaImage.src = 'https://placehold.co/100x100/0000ff/ffffff?text=Cap';
+            assetsToLoad.push(captainAmericaImage);
+
+
+            // Crack Images
+            const crackImageSmall = new Image();
+            const crackImageMedium = new Image();
+            const crackImageLarge = new Image();
+            crackImageSmall.src = 'https://i.ibb.co/hK4jLzW/crack-small.png';
+            crackImageSmall.onerror = () => crackImageSmall.src = 'https://placehold.co/50x50/ffffff/000000?text=Crack';
+            crackImageMedium.src = 'https://i.ibb.co/bQyXp9M/crack-medium.png';
+            crackImageMedium.onerror = () => crackImageMedium.src = 'https://placehold.co/100x100/ffffff/000000?text=Crack';
+            crackImageLarge.src = 'https://i.ibb.co/bQyXp9M/crack-medium.png';
+            crackImageLarge.onerror = () => crackImageLarge.src = 'https://placehold.co/150x150/ffffff/000000?text=Crack';
+            assetsToLoad.push(crackImageSmall, crackImageMedium, crackImageLarge);
+            
+            // Earth Animation Frames
+            const earthFrameURLs = [
+                'https://i.ibb.co/mSg2djY/earth-frame1.png',
+                'https://i.ibb.co/Wc7x49y/earth-frame2.png',
+                'https://i.ibb.co/yQdC4f5/earth-frame3.png',
+                'https://i.ibb.co/yVz9d6b/earth-frame4.png',
+                'https://i.ibb.co/QjF0mNq/earth-frame5.png',
+                'https://i.ibb.co/1zN0G2k/earth-frame6.png'
+            ];
+            for (let i = 0; i < earthFrameCount; i++) {
+                const frameImage = new Image();
+                frameImage.src = earthFrameURLs[i];
+                frameImage.onerror = () => frameImage.src = `https://placehold.co/100x100/3498db/ffffff?text=E${i+1}`;
+                earthFrames.push(frameImage);
+                assetsToLoad.push(frameImage);
+            }
+
+            // Asteroid skin images
+            const smallAsteroidImage = new Image();
+            const mediumAsteroidImage = new Image();
+            const largeAsteroidImage = new Image();
+            smallAsteroidImage.src = 'https://i.ibb.co/yRR01d7/asteroid-small.png';
+            smallAsteroidImage.onerror = () => smallAsteroidImage.src = 'https://placehold.co/30x30/964B00/ffffff?text=S';
+            mediumAsteroidImage.src = 'https://i.ibb.co/q0V7L1P/asteroid-medium.png';
+            mediumAsteroidImage.onerror = () => mediumAsteroidImage.src = 'https://placehold.co/50x50/964B00/ffffff?text=M';
+            largeAsteroidImage.src = 'https://i.ibb.co/mG7p5dD/asteroid-large.png';
+            largeAsteroidImage.onerror = () => largeAsteroidImage.src = 'https://placehold.co/70x70/964B00/ffffff?text=L';
+            assetsToLoad.push(smallAsteroidImage, mediumAsteroidImage, largeAsteroidImage);
+            
+            // Coin animation frames
+            const coinFrameURLs = [
+                'https://i.ibb.co/Jq0wz3f/coin1.png',
+                'https://i.ibb.co/2Yx1qrw/coin2.png',
+                'https://i.ibb.co/Qv7gJgK/coin3.png',
+                'https://i.ibb.co/F8y00Jj/coin4.png',
+                'https://i.ibb.co/HCY1w1F/coin5.png',
+                'https://i.ibb.co/vY5W0v4/coin6.png'
+            ];
+            for (let i = 0; i < coinFrameCount; i++) {
+                const frameImage = new Image();
+                frameImage.src = coinFrameURLs[i];
+                frameImage.onerror = () => frameImage.src = `https://placehold.co/50x50/ffd700/000000?text=C${i+1}`;
+                coinFrames.push(frameImage);
+                assetsToLoad.push(frameImage);
+            }
+
+            let loadedAssets = 0;
+            const totalAssets = assetsToLoad.length;
+            function assetLoaded() {
+                loadedAssets++;
+                if (loadedAssets >= totalAssets) {
+                    // All assets are loaded, hide loader and show start screen
+                    setTimeout(() => { // Small delay for smoother transition
+                        loadingOverlay.style.display = 'none';
+                        startScreenContent.style.visibility = 'visible';
+                        startScreenContent.style.opacity = 1;
+                    }, 500);
+                }
+            }
+            assetsToLoad.forEach(asset => {
+                if (asset.complete) {
+                    assetLoaded();
+                } else {
+                    asset.onload = assetLoaded;
+                    asset.onerror = () => {
+                        console.error("Failed to load asset:", asset.src);
+                        assetLoaded(); // Still count it as "loaded" to not block the game
+                    };
+                }
+            });
+            
+            // --- TTS Functions ---
+            function base64ToArrayBuffer(base64) {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                return bytes.buffer;
+            }
+            function pcmToWav(pcmData, sampleRate) {
+                const numChannels = 1;
+                const bitsPerSample = 16;
+                const byteRate = sampleRate * numChannels * bitsPerSample / 8;
+                const blockAlign = numChannels * bitsPerSample / 8;
+                const buffer = new ArrayBuffer(44 + pcmData.length * 2);
+                const view = new DataView(buffer);
+                writeString(view, 0, 'RIFF');
+                view.setUint32(4, 36 + pcmData.length * 2, true);
+                writeString(view, 8, 'WAVE');
+                writeString(view, 12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, byteRate, true);
+                view.setUint16(32, blockAlign, true);
+                view.setUint16(34, bitsPerSample, true);
+                writeString(view, 36, 'data');
+                view.setUint32(40, pcmData.length * 2, true);
+                for (let i = 0; i < pcmData.length; i++) {
+                    view.setInt16(44 + i * 2, pcmData[i], true);
+                }
+                return new Blob([buffer], { type: 'audio/wav' });
+            }
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+            async function speak(text, voiceName) {
+                // This function requires an API key. It will log to console without one.
+                const apiKey = ""; // <-- ADD YOUR API KEY HERE TO ENABLE TTS
+                if (!apiKey) {
+                    console.log(`TTS (no key): ${text}`);
+                    return;
+                }
+                try {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                    const payload = {
+                        contents: [{ parts: [{ text: text }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: {
+                                voiceConfig: {
+                                    prebuiltVoiceConfig: { voiceName: voiceName }
+                                }
+                            }
+                        },
+                        model: "gemini-2.5-flash-preview-tts"
+                    };
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                        const pcmData = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmData);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        const audioUrl = URL.createObjectURL(wavBlob);
+                        const audio = new Audio(audioUrl);
+                        audio.play();
+                    } else {
+                        console.error('TTS response is missing audio data.');
+                    }
+                } catch (error) {
+                    console.error('Error in TTS API call:', error);
+                }
+            }
+            
+            // --- Tone.js Sound Effects ---
+            const beamSynth = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.05, release: 0.1 }, volume: -10 }).toDestination();
+            const crashNoise = new Tone.NoiseSynth({ noise: { type: "brown" }, envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+            const gameOverNoise = new Tone.NoiseSynth({ noise: { type: "white" }, envelope: { attack: 0.005, decay: 0.5, sustain: 0, release: 0.5 } }).connect(new Tone.Filter(1000, "highpass")).toDestination();
+            const repairSynth = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.2, release: 0.3 } }).toDestination();
+            const shimmerSynth = new Tone.MetalSynth({ frequency: 200, envelope: { attack: 0.001, decay: 0.2, release: 0.1 }, harmonicity: 3.1, modulationIndex: 10, resonance: 800, octaves: 1.5 }).toDestination();
+            const pulseSynth = new Tone.MembraneSynth().toDestination();
+            const asteroidHitSynth = new Tone.NoiseSynth({ noise: { type: "brown" }, envelope: { attack: 0.01, decay: 0.05, sustain: 0, release: 0.05 } }).toDestination();
+            const explosionNoise = new Tone.NoiseSynth({ noise: { type: "white" }, envelope: { attack: 0.005, decay: 0.2, sustain: 0, release: 0.2 } }).connect(new Tone.Filter(200, "lowpass")).toDestination();
+            const buttonClickSynth = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+            const coinSound = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.005, decay: 0.2, sustain: 0, release: 0.1 } }).toDestination();
+            const lavaSound = new Tone.FMSynth({ harmonicity: 3.01, modulationIndex: 14, envelope: { attack: 0.2, decay: 0.3, sustain: 0.1, release: 1.2 }, modulation: { type: "square" }, modulationEnvelope: { attack: 0.2, decay: 0.1, sustain: 0.1, release: 0.1 } }).toDestination();
+            const crackSound = new Tone.NoiseSynth({ noise: { type: "pink" }, envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+            const softRockHitSynth = new Tone.NoiseSynth({ noise: { type: "brown" }, envelope: { attack: 0.02, decay: 0.3, sustain: 0, release: 0.1 } }).toDestination();
+            const introSpaceSound = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "sine" }, envelope: { attack: 4, decay: 2, sustain: 0, release: 4 } }).toDestination();
+            const webSound = new Tone.NoiseSynth({ noise: { type: "pink" }, envelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.1 } }).toDestination();
+            const mainMenuAmbient = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "triangle" }, envelope: { attack: 0.05, decay: 0.5, sustain: 0.1, release: 1 }, volume: -10 }).toDestination();
+            const purchaseSound = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.05, decay: 0.2, sustain: 0, release: 0.3 }, volume: -10 }).toDestination();
+            
+            function playIntroMusic() {
+                introSpaceSound.triggerAttackRelease(["C3", "G3", "D4"], "4s");
+            }
+            function stopIntroMusic() {
+                introSpaceSound.releaseAll();
+            }
+            function playMainMenuMusic() {
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+                mainMenuAmbient.triggerAttackRelease(["C4", "E4", "G4"], "10s");
+            }
+            function stopAllMusic() {
+                mainMenuAmbient.releaseAll();
+            }
+
+            // --- UI Management ---
+            function showScreen(screenId) {
+                startScreen.style.display = 'none';
+                mainMenuOverlay.style.display = 'none';
+                gameOverOverlay.style.display = 'none';
+                shopMenuOverlay.style.display = 'none';
+                instructionsOverlay.style.display = 'none';
+                gameInfoContainer.style.display = 'none';
+                earthHealthInfo.style.display = 'none';
+                gameControlsContainer.style.display = 'none';
+                powerupTimerDisplay.style.display = 'none';
+                coinMultiplierTimerDisplay.style.display = 'none';
+                introOverlay.style.display = 'none';
+                if (screenId === 'startScreen') {
+                    startScreen.style.display = 'flex';
+                } else if (screenId === 'mainMenu') {
+                    mainMenuOverlay.style.display = 'flex';
+                } else if (screenId === 'gameOver') {
+                    gameOverOverlay.style.display = 'flex';
+                } else if (screenId === 'shopMenu') {
+                    shopMenuOverlay.style.display = 'flex';
+                } else if (screenId === 'instructions') {
+                    instructionsOverlay.style.display = 'flex';
+                } else if (screenId === 'game') {
+                    gameInfoContainer.style.display = 'flex';
+                    earthHealthInfo.style.display = 'block';
+                    gameControlsContainer.style.display = 'flex';
+                    homeButton.style.display = 'inline-block';
+                    if (doubleBeamActive) powerupTimerDisplay.style.display = 'block';
+                    if (doubleCoinsActive) coinMultiplierTimerDisplay.style.display = 'block';
+                } else if (screenId === 'intro') {
+                    introOverlay.style.display = 'flex';
+                }
+            }
+            function showMainMenu() {
+                previousScreen = 'mainMenu';
+                gamePaused = true;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                }
+                showScreen('mainMenu');
+                highScoreDisplay.innerText = currentHighScore;
+                coinDisplay.innerText = coins;
+                if (isGameStarted && !gameOver) {
+                    continueGameBtnInMenu.style.display = 'inline-block';
+                } else {
+                    continueGameBtnInMenu.style.display = 'none';
+                }
+                stopAllMusic();
+                playMainMenuMusic();
+            }
+            function showGameOverMenu() {
+                previousScreen = 'gameOver';
+                showScreen('gameOver');
+                stopAllMusic();
+                playMainMenuMusic();
+            }
+            function backToMainMenu() {
+                buttonClickSynth.triggerAttackRelease("C5", "8n");
+                showMainMenu();
+            }
+            function continueGame() {
+                buttonClickSynth.triggerAttackRelease("C5", "8n");
+                gamePaused = false;
+                showScreen('game');
+                stopAllMusic();
+                gameLoop();
+            }
+            function endGame(message) {
+                gameOver = true;
+                isGameStarted = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                }
+                speak("Game Over", "Kore");
+                document.getElementById('game-over-title').innerText = 'Game Over';
+                document.getElementById('game-over-message').innerText = message;
+                const reviveCost = 20 + (reviveCount * 20);
+                reviveBtn.style.display = 'inline-block';
+                reviveBtn.innerHTML = `Revive (${reviveCost} Coins)`;
+                if (coins >= reviveCost) {
+                    reviveBtn.classList.remove('revive-locked');
+                    reviveBtn.disabled = false;
+                } else {
+                    reviveBtn.classList.add('revive-locked');
+                    reviveBtn.disabled = true;
+                }
+                showGameOverMenu();
+            }
+            
+            // --- Intro Sequence ---
+            let introFrameId = null;
+            let introActive = false;
+            function resizeIntroCanvas() {
+                introCanvas.width = window.innerWidth;
+                introCanvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeIntroCanvas);
+            resizeIntroCanvas();
+            function drawWeb() {
+                const centerX = introCanvas.width / 2;
+                const centerY = introCanvas.height / 2;
+                const maxRadius = Math.max(centerX, centerY) * 1.5;
+                const presentedBy = document.getElementById('intro-presented-by');
+                let radius = 0;
+                let angle = 0;
+                let textVisible = false;
+                function animateWeb() {
+                    if (radius < maxRadius) {
+                        radius += 20;
+                        angle += 0.1;
+                        introCtx.clearRect(0, 0, introCanvas.width, introCanvas.height);
+                        introCtx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+                        introCtx.lineWidth = 2;
+                        for (let i = 0; i < 12; i++) {
+                            const endX = centerX + radius * Math.cos(angle + i * Math.PI / 6);
+                            const endY = centerY + radius * Math.sin(angle + i * Math.PI / 6);
+                            introCtx.beginPath();
+                            introCtx.moveTo(centerX, centerY);
+                            introCtx.lineTo(endX, endY);
+                            introCtx.stroke();
+                        }
+                        for (let r = 50; r < radius; r += 50) {
+                            introCtx.beginPath();
+                            for (let i = 0; i < 12; i++) {
+                                const x = centerX + r * Math.cos(angle + i * Math.PI / 6);
+                                const y = centerY + r * Math.sin(angle + i * Math.PI / 6);
+                                if (i === 0) {
+                                    introCtx.moveTo(x, y);
+                                } else {
+                                    introCtx.lineTo(x, y);
+                                }
+                            }
+                            introCtx.closePath();
+                            introCtx.stroke();
+                        }
+                        webSound.triggerAttackRelease("16n");
+                        introFrameId = requestAnimationFrame(animateWeb);
+                    } else if (!textVisible) {
+                        presentedBy.style.opacity = 1;
+                        textVisible = true;
+                    }
+                }
+                animateWeb();
+            }
+            function stopIntro() {
+                if (!introActive) return;
+                introActive = false;
+                if (introFrameId) {
+                    cancelAnimationFrame(introFrameId);
+                }
+                stopIntroMusic();
+                showMainMenu();
+            }
+            async function startIntro() {
+                if (introActive) return;
+                introActive = true;
+                showScreen('intro');
+                try {
+                    await Tone.start();
+                    playIntroMusic();
+                    drawWeb();
+                    setTimeout(stopIntro, 5000);
+                } catch (e) {
+                    console.error("Tone.js failed to start:", e);
+                    stopIntro();
+                }
+            }
+
+            // --- Game Setup and Loop ---
+            function resizeCanvas() {
+                canvas.width = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.9);
+                canvas.height = canvas.width;
+                maxPulseRadius = Math.max(canvas.width, canvas.height);
+                planet.x = canvas.width / 2;
+                planet.y = canvas.height / 2;
+                player.x = planet.x;
+                player.y = planet.y;
+                createStars();
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            function newGame() {
+                buttonClickSynth.triggerAttackRelease("C5", "8n");
+                showScreen('game');
+                stopAllMusic();
+                isGameStarted = true;
+                asteroidSpeed = 0.8;
+                player.speed = 0.025;
+                asteroidSpawnRate = 50;
+                score = 0;
+                earthHealth = 100;
+                playerHealth = 100;
+                gameOver = false;
+                gamePaused = false;
+                doubleBeamActive = false;
+                doubleBeamTimer = 0;
+                doubleCoinsActive = false;
+                doubleCoinsTimer = 0;
+                asteroids = [];
+                powerUps = [];
+                healthPacks = [];
+                beams = [];
+                redBombs = [];
+                coinMultipliers = [];
+                earthCracks = [];
+                isExploding = false;
+                explosionParticles = [];
+                frameCount = 0;
+                lastScoreIncrease = 0;
+                auraColor = null;
+                auraTimer = 0;
+                auraShimmer = 0;
+                pulseActive = false;
+                pulseRadius = 0;
+                reviveCount = 0;
+                previousScreen = 'game';
+                scoreDisplay.innerText = score;
+                earthHealthDisplay.innerText = earthHealth;
+                playerHealthDisplay.innerText = playerHealth;
+                coinDisplay.innerText = coins;
+                gameLoop();
+            }
+            function gameLoop() {
+                if (gameOver || gamePaused) return;
+                if (isExploding) {
+                    drawExplosion();
+                    animationFrameId = requestAnimationFrame(gameLoop);
+                    return;
+                }
+                if (frameCount % earthAnimationSpeed === 0) {
+                    currentEarthFrame = (currentEarthFrame + 1) % earthFrameCount;
+                }
+                if (frameCount % coinAnimationSpeed === 0) {
+                    currentCoinFrame = (currentCoinFrame + 1) % coinFrameCount;
+                }
+                updatePlayer();
+                updateObjects();
+                checkCollisions();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawStars();
+                drawPlanet();
+                drawPlayer();
+                drawAsteroids();
+                drawRedBombs();
+                drawPowerUps();
+                drawBeams();
+                drawPulse();
+                frameCount++;
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+            
+            // --- Game Logic Functions ---
+            function distance(x1, y1, x2, y2) {
+                return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            }
+            function getAsteroidDamage(asteroid) {
+                let damage = { player: 0, earth: 0 };
+                if (asteroid.radius <= 8) {
+                    damage.player = 1;
+                    damage.earth = 1;
+                } else if (asteroid.radius > 8 && asteroid.radius <= 12) {
+                    damage.player = 5;
+                    damage.earth = 5;
+                } else {
+                    damage.player = 8;
+                    damage.earth = 8;
+                }
+                return damage;
+            }
+            function updatePlayer() {
+                player.angle += player.speed * player.direction;
+                player.x = planet.x + player.orbitRadius * Math.cos(player.angle);
+                player.y = planet.y + player.orbitRadius * Math.sin(player.angle);
+            }
+            function updateAura() {
+                if (auraTimer > 0) {
+                    auraTimer--;
+                    auraShimmer += 0.2;
+                    if (auraTimer <= 0) {
+                        auraColor = null;
+                    }
+                }
+            }
+            function updatePulse() {
+                if (pulseActive) {
+                    pulseRadius += 2.5;
+                    if (pulseRadius > maxPulseRadius) {
+                        pulseActive = false;
+                        pulseRadius = 0;
+                    }
+                }
+            }
+            function updateExplosionParticles() {
+                for (let i = explosionParticles.length - 1; i >= 0; i--) {
+                    let p = explosionParticles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.alpha -= 0.01;
+                    if (p.alpha <= 0) {
+                        explosionParticles.splice(i, 1);
+                    }
+                }
+            }
+            function updateCracks() {
+                for (let i = earthCracks.length - 1; i >= 0; i--) {
+                    earthCracks[i].timer--;
+                    if (earthCracks[i].timer <= 0) {
+                        earthCracks.splice(i, 1);
+                    }
+                }
+            }
+            function updateObjects() {
+                for (let i = beams.length - 1; i >= 0; i--) {
+                    let beam = beams[i];
+                    beam.x += beam.vx;
+                    beam.y += beam.vy;
+                    if (beam.x < -20 || beam.x > canvas.width + 20 || beam.y < -20 || beam.y > canvas.height + 20) {
+                        beams.splice(i, 1);
+                    }
+                }
+                for (let i = asteroids.length - 1; i >= 0; i--) {
+                    let asteroid = asteroids[i];
+                    asteroid.x += asteroid.vx;
+                    asteroid.y += asteroid.vy;
+                    if (distance(asteroid.x, asteroid.y, planet.x, planet.y) < planet.radius + asteroid.radius) {
+                        softRockHitSynth.triggerAttackRelease("16n");
+                        lavaSound.triggerAttackRelease("C2", "1s");
+                        const damage = getAsteroidDamage(asteroid);
+                        earthHealth -= damage.earth;
+                        if (earthHealth < 0) earthHealth = 0;
+                        earthHealthDisplay.innerText = earthHealth;
+                        let crackType = (asteroid.radius <= 8) ? 'small' : (asteroid.radius <= 12 ? 'medium' : 'large');
+                        addEarthCrack(asteroid, crackType);
+                        asteroids.splice(i, 1);
+                        if (earthHealth <= 0 && !isExploding) {
+                           isExploding = true;
+                        }
+                    } else if (asteroid.x < -20 || asteroid.x > canvas.width + 20 || asteroid.y < -20 || asteroid.y > canvas.height + 20) {
+                        asteroids.splice(i, 1);
+                    }
+                }
+                [redBombs, powerUps, healthPacks, coinMultipliers].forEach(array => {
+                    for (let i = array.length - 1; i >= 0; i--) {
+                        let object = array[i];
+                        object.x += object.vx;
+                        object.y += object.vy;
+                        if (distance(object.x, object.y, planet.x, planet.y) < planet.radius + object.radius) {
+                            array.splice(i, 1);
+                        } else if (object.x < -20 || object.x > canvas.width + 20 || object.y < -20 || object.y > canvas.height + 20) {
+                            array.splice(i, 1);
+                        }
+                    }
+                });
+                updateAura();
+                updatePulse();
+                updateExplosionParticles();
+                updateCracks();
+                spawnObjects();
+            }
+            function checkCollisions() {
+                for (let i = beams.length - 1; i >= 0; i--) {
+                    let beam = beams[i];
+                    let beamRemoved = false;
+                    for (let j = asteroids.length - 1; j >= 0; j--) {
+                        let asteroid = asteroids[j];
+                        if (distance(beam.x, beam.y, asteroid.x, asteroid.y) < beam.size + asteroid.radius) {
+                            if (Tone.now() - lastAsteroidHitTime > soundCooldown) {
+                                asteroidHitSynth.triggerAttackRelease("16n");
+                                lastAsteroidHitTime = Tone.now();
+                            }
+                            score += 1;
+                            scoreDisplay.innerText = score;
+                            let coinsEarned = doubleCoinsActive ? 2 : 1;
+                            coinSound.triggerAttackRelease(doubleCoinsActive ? "E6" : "E5", "16n");
+                            coins += coinsEarned;
+                            coinDisplay.innerText = coins;
+                            localStorage.setItem('orbitDashCoins', coins);
+                            if (score > currentHighScore) {
+                                currentHighScore = score;
+                                localStorage.setItem('orbitDashHighScore', currentHighScore);
+                            }
+                            if (score > lastScoreIncrease && score % 10 === 0) {
+                                asteroidSpeed += 0.1;
+                            }
+                            beams.splice(i, 1);
+                            asteroids.splice(j, 1);
+                            beamRemoved = true;
+                            break;
+                        }
+                    }
+                    if (beamRemoved) continue;
+                    for (let j = redBombs.length - 1; j >= 0; j--) {
+                        let bomb = redBombs[j];
+                        if (distance(beam.x, beam.y, bomb.x, bomb.y) < beam.size + bomb.radius) {
+                            beams.splice(i, 1);
+                            redBombs.splice(j, 1);
+                            pulseActive = true;
+                            pulseRadius = planet.radius;
+                            auraColor = '#FF0000';
+                            auraTimer = 1 * 60;
+                            pulseSynth.triggerAttackRelease("C1", "2n");
+                            beamRemoved = true;
+                            break;
+                        }
+                    }
+                    if (beamRemoved) continue;
+                    for (let j = powerUps.length - 1; j >= 0; j--) {
+                        let powerUp = powerUps[j];
+                        if (distance(beam.x, beam.y, powerUp.x, powerUp.y) < beam.size + powerUp.radius) {
+                            beams.splice(i, 1);
+                            powerUps.splice(j, 1);
+                            auraColor = '#FFFF00';
+                            auraTimer = 10 * 60;
+                            shimmerSynth.triggerAttackRelease("C5", "8n");
+                            if (!doubleBeamActive) {
+                                doubleBeamActive = true;
+                                doubleBeamTimer = UPGRADES.doubleBeam.base_duration + (UPGRADES.doubleBeam.level_duration_increase * doubleBeamUpgradeLevel);
+                                powerupTimerDisplay.style.display = 'block';
+                                const timerInterval = setInterval(() => {
+                                    if (gamePaused) return;
+                                    doubleBeamTimer--;
+                                    powerupTimeSpan.innerText = doubleBeamTimer;
+                                    if (doubleBeamTimer <= 0) {
+                                        clearInterval(timerInterval);
+                                        doubleBeamActive = false;
+                                        powerupTimerDisplay.style.display = 'none';
+                                    }
+                                }, 1000);
+                            }
+                            beamRemoved = true;
+                            break;
+                        }
+                    }
+                    if (beamRemoved) continue;
+                    for (let j = healthPacks.length - 1; j >= 0; j--) {
+                        let healthPack = healthPacks[j];
+                        if (distance(beam.x, beam.y, healthPack.x, healthPack.y) < beam.size + healthPack.radius) {
+                            beams.splice(i, 1);
+                            healthPacks.splice(j, 1);
+                            auraColor = '#00FF00';
+                            auraTimer = 2 * 60;
+                            repairSynth.triggerAttackRelease("C6", "4n");
+                            let health_restore = UPGRADES.health.base_restore + (UPGRADES.health.level_restore_increase * healthUpgradeLevel);
+                            playerHealth += health_restore;
+                            if (playerHealth > 100) playerHealth = 100;
+                            playerHealthDisplay.innerText = playerHealth;
+                            beamRemoved = true;
+                            break;
+                        }
+                    }
+                    if (beamRemoved) continue;
+                    for (let j = coinMultipliers.length - 1; j >= 0; j--) {
+                        let coinMultiplier = coinMultipliers[j];
+                        if (distance(beam.x, beam.y, coinMultiplier.x, coinMultiplier.y) < beam.size + coinMultiplier.radius) {
+                            beams.splice(i, 1);
+                            coinMultipliers.splice(j, 1);
+                            auraColor = '#FFD700';
+                            auraTimer = 2 * 60;
+                            coinSound.triggerAttackRelease("G6", "4n");
+                            if (!doubleCoinsActive) {
+                                doubleCoinsActive = true;
+                                doubleCoinsTimer = UPGRADES.coinMultiplier.base_duration + (UPGRADES.coinMultiplier.level_duration_increase * coinMultiplierUpgradeLevel);
+                                coinMultiplierTimerDisplay.style.display = 'block';
+                                const timerInterval = setInterval(() => {
+                                    if (gamePaused) return;
+                                    doubleCoinsTimer--;
+                                    coinMultiplierTimeSpan.innerText = doubleCoinsTimer;
+                                    if (doubleCoinsTimer <= 0) {
+                                        clearInterval(timerInterval);
+                                        doubleCoinsActive = false;
+                                        coinMultiplierTimerDisplay.style.display = 'none';
+                                    }
+                                }, 1000);
+                            }
+                            beamRemoved = true;
+                            break;
+                        }
+                    }
+                }
+                let playerHit = false;
+                for (let i = asteroids.length - 1; i >= 0; i--) {
+                    let asteroid = asteroids[i];
+                    if (distance(asteroid.x, asteroid.y, player.x, player.y) < player.size + asteroid.radius) {
+                        playerHit = true;
+                        if (Tone.now() - lastCrashTime > soundCooldown) {
+                            crashNoise.triggerAttackRelease("32n");
+                            lastCrashTime = Tone.now();
+                        }
+                        const damage = getAsteroidDamage(asteroid);
+                        playerHealth -= damage.player;
+                        if (playerHealth < 0) playerHealth = 0;
+                        playerHealthDisplay.innerText = playerHealth;
+                        asteroids.splice(i, 1);
+                        if (playerHealth <= 0) endGame("Your ship was destroyed by an asteroid!");
+                        if (playerHit) break;
+                    }
+                }
+                if (pulseActive) {
+                    for (let i = asteroids.length - 1; i >= 0; i--) {
+                        let asteroid = asteroids[i];
+                        if (distance(asteroid.x, asteroid.y, planet.x, planet.y) < pulseRadius) {
+                            if (Tone.now() - lastAsteroidHitTime > soundCooldown) {
+                                asteroidHitSynth.triggerAttackRelease("16n");
+                                lastAsteroidHitTime = Tone.now();
+                            }
+                            asteroids.splice(i, 1);
+                        }
+                    }
+                }
+            }
+            
+            // --- Drawing Functions ---
+            function createStars() {
+                stars = [];
+                const starCount = 300;
+                for (let i = 0; i < starCount; i++) {
+                    stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, radius: Math.random() * 1.5, opacity: Math.random() });
+                }
+            }
+            function drawStars() {
+                stars.forEach(star => {
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                    ctx.fill();
+                    ctx.closePath();
+                });
+            }
+            function addEarthCrack(asteroid, crackType) {
+                crackSound.triggerAttackRelease("32n");
+                let selectedImage = (crackType === 'small') ? crackImageSmall : crackImageMedium;
+                const impactAngle = Math.atan2(asteroid.y - planet.y, asteroid.x - planet.x);
+                const impactX = planet.x + (planet.radius - 5) * Math.cos(impactAngle);
+                const impactY = planet.y + (planet.radius - 5) * Math.sin(impactAngle);
+                earthCracks.push({ image: selectedImage, x: impactX, y: impactY, angle: impactAngle, timer: 90 });
+            }
+            function drawCracks() {
+                earthCracks.forEach(crack => {
+                    if (crack.image.complete) {
+                        const scale = 0.25;
+                        const w = crack.image.width * scale;
+                        const h = crack.image.height * scale;
+                        ctx.save();
+                        ctx.translate(crack.x, crack.y);
+                        ctx.rotate(crack.angle + Math.PI / 2);
+                        ctx.globalAlpha = Math.min(1, crack.timer / 30);
+                        ctx.drawImage(crack.image, -w / 2, -h / 2, w, h);
+                        ctx.restore();
+                    }
+                });
+            }
+            function drawLavaCore() {
+                if (earthHealth < 100) {
+                    const lavaRadius = planet.radius * (1 - earthHealth / 100);
+                    if (lavaRadius > 0) {
+                        ctx.shadowColor = 'rgba(255, 100, 0, 0.7)';
+                        ctx.shadowBlur = 20;
+                        const lavaGradient = ctx.createRadialGradient(planet.x, planet.y, 0, planet.x, planet.y, lavaRadius);
+                        lavaGradient.addColorStop(0, '#FF4500');
+                        lavaGradient.addColorStop(0.5, '#FF8C00');
+                        lavaGradient.addColorStop(1, '#FFD700');
+                        ctx.beginPath();
+                        ctx.arc(planet.x, planet.y, lavaRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = lavaGradient;
+                        ctx.fill();
+                        ctx.closePath();
+                        ctx.shadowBlur = 0;
+                    }
+                }
+            }
+            function drawExplosion() {
+                if (explosionParticles.length === 0 && isExploding) {
+                    explosionNoise.triggerAttackRelease("1s");
+                    for (let i = 0; i < 500; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = Math.random() * 10 + 2;
+                        explosionParticles.push({ x: planet.x, y: planet.y, vx: speed * Math.cos(angle), vy: speed * Math.sin(angle), radius: Math.random() * 3 + 1, color: `hsl(${Math.random() * 30 + 10}, 100%, 50%)`, alpha: 1 });
+                    }
+                }
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawStars();
+                updateExplosionParticles();
+                explosionParticles.forEach(p => {
+                    ctx.globalAlpha = p.alpha;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                    ctx.closePath();
+                });
+                ctx.globalAlpha = 1;
+                if (isExploding && explosionParticles.length === 0) {
+                    isExploding = false;
+                    endGame("The Earth's shield was destroyed!");
+                }
+            }
+            function drawPlanet() {
+                if (isExploding) return;
+                const currentFrameImage = earthFrames[currentEarthFrame];
+                if (currentFrameImage && currentFrameImage.complete) {
+                    ctx.shadowColor = '#00ccff';
+                    ctx.shadowBlur = 30;
+                    ctx.drawImage(currentFrameImage, planet.x - planet.radius, planet.y - planet.radius, planet.radius * 2, planet.radius * 2);
+                    ctx.shadowBlur = 0;
+                } else {
+                    ctx.shadowColor = '#00ccff';
+                    ctx.shadowBlur = 30;
+                    const gradient = ctx.createRadialGradient(planet.x, planet.y, 0, planet.x, planet.y, planet.radius);
+                    gradient.addColorStop(0, '#4CAF50');
+                    gradient.addColorStop(0.7, '#2196F3');
+                    gradient.addColorStop(1, '#00ccff');
+                    ctx.beginPath();
+                    ctx.arc(planet.x, planet.y, planet.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    ctx.closePath();
+                    ctx.shadowBlur = 0;
+                }
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(planet.x, planet.y, planet.radius, 0, Math.PI * 2);
+                ctx.clip();
+                drawLavaCore();
+                ctx.restore();
+                drawCracks();
+            }
+            function drawIronMan(context, size) {
+                if (ironManImage.complete) {
+                    context.drawImage(ironManImage, -size, -size, size * 2, size * 2);
+                }
+            }
+            function drawGreenHulk(context, size) {
+                if (greenHulkImage.complete) {
+                    context.drawImage(greenHulkImage, -size, -size, size * 2, size * 2);
+                }
+            }
+            function drawBlackWidow(context, size) {
+                if (blackWidowImage.complete) {
+                    context.drawImage(blackWidowImage, -size, -size, size * 2, size * 2);
+                }
+            }
+            function drawCaptainAmerica(context, size) {
+                if (captainAmericaImage.complete) {
+                    context.drawImage(captainAmericaImage, -size, -size, size * 2, size * 2);
+                }
+            }
+            function drawHealthPack(context, size) {
+                const halfSize = size * 0.5;
+                context.save();
+                context.translate(0, 0);
+                context.fillStyle = '#00FF00';
+                context.shadowColor = '#00FF00';
+                context.shadowBlur = 10;
+                context.fillRect(-halfSize, -size * 0.2, size, size * 0.4);
+                context.fillRect(-size * 0.2, -halfSize, size * 0.4, size);
+                context.fill();
+                context.restore();
+            }
+            function drawDoubleBeam(context, size) {
+                const radius = size * 0.4;
+                const offset = size * 0.5;
+                context.save();
+                context.translate(0, 0);
+                context.beginPath();
+                context.fillStyle = '#FFFF00';
+                context.shadowColor = '#FFFF00';
+                context.shadowBlur = 10;
+                context.arc(-offset, 0, radius, 0, Math.PI * 2);
+                context.arc(offset, 0, radius, 0, Math.PI * 2);
+                context.fill();
+                context.restore();
+            }
+            function drawCoinMultiplier(context, size) {
+                const firstCoinImage = coinFrames[0];
+                if (firstCoinImage && firstCoinImage.complete) {
+                    context.save();
+                    context.translate(0, 0);
+                    context.drawImage(firstCoinImage, -size, -size, size * 2, size * 2);
+                    context.restore();
+                } else {
+                    context.save();
+                    context.translate(0, 0);
+                    context.beginPath();
+                    context.arc(0, 0, size, 0, Math.PI * 2);
+                    context.fillStyle = '#FFD700';
+                    context.shadowColor = '#FFD700';
+                    context.shadowBlur = 10;
+                    context.fill();
+                    context.closePath();
+                    context.font = `${size}px Orbitron`;
+                    context.fillStyle = '#0d0d1a';
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    context.fillText('$', 0, 0);
+                    context.restore();
+                }
+            }
+            function drawPlayer() {
+                if (auraColor) {
+                    ctx.save();
+                    ctx.translate(player.x, player.y);
+                    const auraRadius = player.size * 2 + Math.sin(auraShimmer) * 5;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, auraRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = auraColor;
+                    ctx.shadowColor = auraColor;
+                    ctx.shadowBlur = 20;
+                    ctx.globalAlpha = 0.3;
+                    ctx.fill();
+                    ctx.restore();
+                }
+                ctx.save();
+                ctx.translate(player.x, player.y);
+                ctx.rotate(player.angle + Math.PI / 2);
+                const currentSkin = SKINS[player.skin];
+                if (currentSkin && currentSkin.draw) {
+                    currentSkin.draw(ctx, player.size);
+                }
+                ctx.restore();
+            }
+            function drawAsteroids() {
+                asteroids.forEach(asteroid => {
+                    ctx.save();
+                    ctx.globalAlpha = 0.5;
+                    const trailLength = 20;
+                    for (let i = 0; i < trailLength; i++) {
+                        const alpha = 1 - i / trailLength;
+                        ctx.beginPath();
+                        ctx.arc(asteroid.x - asteroid.vx * i * 0.5, asteroid.y - asteroid.vy * i * 0.5, asteroid.radius * alpha, 0, Math.PI * 2);
+                        const gradient = ctx.createRadialGradient(asteroid.x - asteroid.vx * i * 0.5, asteroid.y - asteroid.vy * i * 0.5, 0, asteroid.x - asteroid.vx * i * 0.5, asteroid.y - asteroid.vy * i * 0.5, asteroid.radius * alpha);
+                        gradient.addColorStop(0, `rgba(255, 255, 0, ${alpha})`);
+                        gradient.addColorStop(0.5, `rgba(255, 100, 0, ${alpha})`);
+                        gradient.addColorStop(1, `rgba(255, 0, 0, 0)`);
+                        ctx.fillStyle = gradient;
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                    if (asteroid.skin && asteroid.skin.complete) {
+                        ctx.save();
+                        ctx.translate(asteroid.x, asteroid.y);
+                        asteroid.angle = (asteroid.angle || 0) + 0.005;
+                        ctx.rotate(asteroid.angle);
+                        ctx.drawImage(asteroid.skin, -asteroid.radius, -asteroid.radius, asteroid.radius * 2, asteroid.radius * 2);
+                        ctx.restore();
+                    } else {
+                        ctx.shadowColor = 'rgba(255, 0, 0, 0.7)';
+                        ctx.shadowBlur = 15;
+                        ctx.beginPath();
+                        const gradient = ctx.createRadialGradient(asteroid.x, asteroid.y, asteroid.radius * 0.2, asteroid.x, asteroid.y, asteroid.radius);
+                        gradient.addColorStop(0, '#a9a9a9');
+                        gradient.addColorStop(1, '#505050');
+                        ctx.arc(asteroid.x, asteroid.y, asteroid.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = gradient;
+                        ctx.fill();
+                        ctx.closePath();
+                        ctx.shadowBlur = 0;
+                    }
+                });
+            }
+            function drawRedBombs() {
+                redBombs.forEach(bomb => {
+                    const radius = bomb.radius;
+                    ctx.save();
+                    ctx.translate(bomb.x, bomb.y);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, radius, Math.PI, 0);
+                    ctx.lineTo(radius, radius * 1.5);
+                    ctx.lineTo(-radius, radius * 1.5);
+                    ctx.fillStyle = bomb.color;
+                    ctx.shadowColor = bomb.color;
+                    ctx.shadowBlur = 15;
+                    ctx.fill();
+                    ctx.closePath();
+                    ctx.beginPath();
+                    ctx.moveTo(0, -radius);
+                    ctx.lineTo(0, -radius * 1.5);
+                    ctx.strokeStyle = '#666';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.restore();
+                });
+            }
+            function drawPowerUps() {
+                powerUps.forEach(powerUp => {
+                    const radius = powerUp.radius;
+                    ctx.save();
+                    ctx.translate(powerUp.x, powerUp.y);
+                    ctx.beginPath();
+                    ctx.fillStyle = '#FFD700';
+                    ctx.shadowColor = '#FFD700';
+                    ctx.shadowBlur = 10;
+                    ctx.fillRect(-radius, -radius * 0.7, radius * 2, radius * 1.4);
+                    ctx.fillRect(-radius * 0.3, -radius * 1.1, radius * 0.6, radius * 0.4);
+                    ctx.restore();
+                });
+                healthPacks.forEach(healthPack => {
+                    const size = healthPack.radius;
+                    ctx.save();
+                    ctx.translate(healthPack.x, healthPack.y);
+                    ctx.beginPath();
+                    ctx.moveTo(0, size);
+                    ctx.lineTo(-size, size / 2);
+                    ctx.lineTo(-size, -size / 2);
+                    ctx.lineTo(0, -size);
+                    ctx.lineTo(size, -size / 2);
+                    ctx.lineTo(size, size / 2);
+                    ctx.lineTo(0, size);
+                    ctx.fillStyle = '#00FF00';
+                    ctx.shadowColor = '#00FF00';
+                    ctx.shadowBlur = 10;
+                    ctx.fill();
+                    ctx.restore();
+                });
+                coinMultipliers.forEach(coinMultiplier => {
+                    const radius = coinMultiplier.radius;
+                    const currentFrameImage = coinFrames[currentCoinFrame];
+                    if (currentFrameImage && currentFrameImage.complete) {
+                        ctx.save();
+                        ctx.shadowColor = '#FFD700';
+                        ctx.shadowBlur = 15;
+                        ctx.drawImage(currentFrameImage, coinMultiplier.x - radius, coinMultiplier.y - radius, radius * 2, radius * 2);
+                        ctx.restore();
+                    } else {
+                        ctx.save();
+                        ctx.translate(coinMultiplier.x, coinMultiplier.y);
+                        ctx.beginPath();
+                        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                        ctx.fillStyle = '#FFD700';
+                        ctx.shadowColor = '#FFD700';
+                        ctx.shadowBlur = 10;
+                        ctx.fill();
+                        ctx.closePath();
+                        ctx.font = `${radius}px Orbitron`;
+                        ctx.fillStyle = '#0d0d1a';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('$', 0, 0);
+                        ctx.restore();
+                    }
+                });
+            }
+            function drawBeams() {
+                beams.forEach(beam => {
+                    ctx.beginPath();
+                    ctx.arc(beam.x, beam.y, beam.size, 0, Math.PI * 2);
+                    ctx.fillStyle = beam.color;
+                    ctx.shadowColor = beam.color;
+                    ctx.shadowBlur = 10;
+                    ctx.fill();
+                    ctx.closePath();
+                    ctx.shadowBlur = 0;
+                });
+            }
+            function drawPulse() {
+                if (pulseActive) {
+                    ctx.save();
+                    ctx.beginPath();
+                    const gradient = ctx.createRadialGradient(planet.x, planet.y, 0, planet.x, planet.y, pulseRadius);
+                    gradient.addColorStop(0, 'rgba(255, 0, 0, 0.5)');
+                    gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.arc(planet.x, planet.y, pulseRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+            function spawnObjects() {
+                if (frameCount % asteroidSpawnRate === 0) spawnAsteroid();
+                if (frameCount > powerUpStartDelay) {
+                    if (frameCount % (15 * 60) === 0) {
+                        spawnPowerUp();
+                        spawnHealthPack();
+                    }
+                    if (frameCount % (15 * 60) === 0) {
+                        spawnRedBomb();
+                    }
+                    if (frameCount % (20 * 60) === 0) {
+                        spawnCoinMultiplier();
+                    }
+                }
+            }
+            function spawnAsteroid() {
+                let radius = Math.random() * (15 - 5) + 5;
+                let angle = Math.random() * Math.PI * 2;
+                let x = planet.x + canvas.width * 0.6 * Math.cos(angle);
+                let y = planet.y + canvas.height * 0.6 * Math.sin(angle);
+                let speed = asteroidSpeed;
+                let angleToCenter = Math.atan2(planet.y - y, planet.x - x);
+                let vx = speed * Math.cos(angleToCenter);
+                let vy = speed * Math.sin(angleToCenter);
+                let skin = (radius <= 8) ? smallAsteroidImage : (radius <= 12 ? mediumAsteroidImage : largeAsteroidImage);
+                asteroids.push({ x, y, radius, vx, vy, skin });
+            }
+            function spawnRedBomb() {
+                let radius = 10;
+                let angle = Math.random() * Math.PI * 2;
+                let x = planet.x + canvas.width * 0.6 * Math.cos(angle);
+                let y = planet.y + canvas.height * 0.6 * Math.sin(angle);
+                let speed = asteroidSpeed * 0.8;
+                let angleToCenter = Math.atan2(planet.y - y, planet.x - x);
+                let vx = speed * Math.cos(angleToCenter);
+                let vy = speed * Math.sin(angleToCenter);
+                redBombs.push({ x, y, radius, vx, vy, color: '#ff0000' });
+            }
+            function spawnPowerUp() {
+                let radius = 8;
+                let angle = Math.random() * Math.PI * 2;
+                let x = planet.x + canvas.width * 0.6 * Math.cos(angle);
+                let y = planet.y + canvas.height * 0.6 * Math.sin(angle);
+                let speed = Math.random() * (1.5 - 0.8) + 0.8;
+                let angleToCenter = Math.atan2(planet.y - y, planet.x - x);
+                let vx = speed * Math.cos(angleToCenter);
+                let vy = speed * Math.sin(angleToCenter);
+                powerUps.push({ x, y, radius, vx, vy, color: '#ffff00' });
+            }
+            function spawnHealthPack() {
+                let radius = 8;
+                let angle = Math.random() * Math.PI * 2;
+                let x = planet.x + canvas.width * 0.6 * Math.cos(angle);
+                let y = planet.y + canvas.height * 0.6 * Math.sin(angle);
+                let speed = Math.random() * (1.5 - 0.8) + 0.8;
+                let angleToCenter = Math.atan2(planet.y - y, planet.x - x);
+                let vx = speed * Math.cos(angleToCenter);
+                let vy = speed * Math.sin(angleToCenter);
+                healthPacks.push({ x, y, radius, vx, vy, color: '#00ff00' });
+            }
+            function spawnCoinMultiplier() {
+                let radius = 12;
+                let angle = Math.random() * Math.PI * 2;
+                let x = planet.x + canvas.width * 0.6 * Math.cos(angle);
+                let y = planet.y + canvas.height * 0.6 * Math.sin(angle);
+                let speed = Math.random() * (1.5 - 0.8) + 0.8;
+                let angleToCenter = Math.atan2(planet.y - y, planet.x - x);
+                let vx = speed * Math.cos(angleToCenter);
+                let vy = speed * Math.sin(angleToCenter);
+                coinMultipliers.push({ x, y, radius, vx, vy, color: '#FFD700' });
+            }
+            
+            // --- Shop Menu Functions ---
+            function showShopMessage(title, message) {
+                const messageBox = document.createElement('div');
+                messageBox.classList.add('message-box');
+                messageBox.innerHTML = `<h2>${title}</h2><p>${message}</p><div class="button-group"><button class="button" id="close-msg-btn">Close</button></div>`;
+                shopMenuOverlay.appendChild(messageBox);
+                document.getElementById('close-msg-btn').addEventListener('click', () => {
+                    buttonClickSynth.triggerAttackRelease("C5", "8n");
+                    messageBox.remove();
+                });
+            }
+            function drawShopSkins() {
+                const previewSize = 20;
+                for (const key in SKINS) {
+                    const skinCanvas = document.getElementById(`skin-canvas-${key}`);
+                    if (skinCanvas) {
+                        const skinCtx = skinCanvas.getContext('2d');
+                        skinCtx.clearRect(0, 0, skinCanvas.width, skinCanvas.height);
+                        skinCtx.save();
+                        skinCtx.translate(skinCanvas.width / 2, skinCanvas.height / 2);
+                        SKINS[key].draw(skinCtx, previewSize);
+                        skinCtx.restore();
+                    }
+                }
+            }
+            function drawShopPowerups() {
+                const previewSize = 20;
+                for (const key in UPGRADES) {
+                    const powerupCanvas = document.getElementById(`powerup-canvas-${key}`);
+                    if (powerupCanvas) {
+                        const powerupCtx = powerupCanvas.getContext('2d');
+                        powerupCtx.clearRect(0, 0, powerupCanvas.width, powerupCanvas.height);
+                        powerupCtx.save();
+                        powerupCtx.translate(powerupCanvas.width / 2, powerupCanvas.height / 2);
+                        UPGRADES[key].draw(powerupCtx, previewSize);
+                        powerupCtx.restore();
+                    }
+                }
+            }
+            function generateShopOptions() {
+                skinsOptionsContainer.innerHTML = '';
+                const currentSkin = localStorage.getItem('orbitDashCurrentSkin') || 'ironMan';
+                for (const key in SKINS) {
+                    const skin = SKINS[key];
+                    const isUnlocked = unlockedSkins.includes(key);
+                    const isSelected = key === currentSkin;
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = `skin-option ${!isUnlocked && (skin.high_score_req && currentHighScore < skin.high_score_req || coins < skin.price) ? 'locked' : ''} ${isSelected ? 'selected' : ''}`;
+                    optionDiv.dataset.skinKey = key;
+                    let statusText = '';
+                    let buttonHtml = '';
+                    if (isSelected) {
+                        statusText = 'Equipped';
+                    } else if (isUnlocked) {
+                        statusText = 'Unlocked';
+                        buttonHtml = `<button class="purchase-button" data-action="equip">Equip</button>`;
+                    } else if (skin.high_score_req && currentHighScore < skin.high_score_req) {
+                        statusText = `High Score of ${skin.high_score_req} Required`;
+                        buttonHtml = `<button class="purchase-button" disabled>Locked</button>`;
+                    } else {
+                        statusText = `Cost: ${skin.price} Coins`;
+                        buttonHtml = `<button class="purchase-button" data-action="unlock">Unlock</button>`;
+                    }
+                    optionDiv.innerHTML = `<div class="skin-option-content"><canvas id="skin-canvas-${key}" width="60" height="60"></canvas><h3>${skin.name}</h3></div><span class="unlock-cost">${statusText}</span>${buttonHtml}`;
+                    skinsOptionsContainer.appendChild(optionDiv);
+                }
+                drawShopSkins();
+                document.querySelectorAll('#skins-options-container .purchase-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const key = e.target.closest('.skin-option').dataset.skinKey;
+                        const action = e.target.dataset.action;
+                        const skin = SKINS[key];
+                        if (action === 'equip') {
+                            buttonClickSynth.triggerAttackRelease("C5", "8n");
+                            player.skin = key;
+                            localStorage.setItem('orbitDashCurrentSkin', key);
+                            generateShopOptions();
+                        } else if (action === 'unlock') {
+                            if (coins >= skin.price) {
+                                purchaseSound.triggerAttackRelease("C5", "8n");
+                                coins -= skin.price;
+                                localStorage.setItem('orbitDashCoins', coins);
+                                unlockedSkins.push(key);
+                                localStorage.setItem('orbitDashUnlockedSkins', JSON.stringify(unlockedSkins));
+                                player.skin = key;
+                                localStorage.setItem('orbitDashCurrentSkin', key);
+                                generateShopOptions();
+                                showShopMessage('Success!', `You unlocked the ${skin.name} skin!`);
+                            } else {
+                                buttonClickSynth.triggerAttackRelease("C2", "8n");
+                                showShopMessage('Not Enough Coins', `You need ${skin.price} coins to unlock this skin. You only have ${coins} coins. Keep playing!`);
+                            }
+                        }
+                    });
+                });
+            }
+            function generatePowerupOptions() {
+                powerupsOptionsContainer.innerHTML = '';
+                // Health Upgrade
+                const healthUpgradeInfo = UPGRADES.health;
+                const healthUpgradeCost = healthUpgradeInfo.cost_increase * (healthUpgradeLevel + 1);
+                const currentHealthRestore = healthUpgradeInfo.base_restore + (healthUpgradeInfo.level_restore_increase * healthUpgradeLevel);
+                const isMaxHealth = healthUpgradeLevel >= healthUpgradeInfo.max_level;
+                const canUpgradeHealth = !isMaxHealth && coins >= healthUpgradeCost;
+                const healthUpgradeDiv = document.createElement('div');
+                healthUpgradeDiv.className = `upgrade-option ${!canUpgradeHealth ? 'locked' : ''}`;
+                healthUpgradeDiv.innerHTML = `<div class="skin-option-content"><canvas id="powerup-canvas-health" width="60" height="60"></canvas><h3>${healthUpgradeInfo.name} Upgrade</h3></div><p>Current Level: ${healthUpgradeLevel} / ${healthUpgradeInfo.max_level}</p><p>Heals: ${currentHealthRestore}</p><span class="unlock-cost">${isMaxHealth ? 'Max Level' : `Cost: ${healthUpgradeCost} Coins`}</span><button class="purchase-button" id="health-upgrade-btn" ${!canUpgradeHealth ? 'disabled' : ''}>Upgrade</button>`;
+                powerupsOptionsContainer.appendChild(healthUpgradeDiv);
+                // Double Beam Upgrade
+                const doubleBeamUpgradeInfo = UPGRADES.doubleBeam;
+                const doubleBeamUpgradeCost = doubleBeamUpgradeInfo.cost_increase * (doubleBeamUpgradeLevel + 1);
+                const currentDoubleBeamDuration = doubleBeamUpgradeInfo.base_duration + (doubleBeamUpgradeInfo.level_duration_increase * doubleBeamUpgradeLevel);
+                const maxDoubleBeamLevel = (doubleBeamUpgradeInfo.max_duration - doubleBeamUpgradeInfo.base_duration) / doubleBeamUpgradeInfo.level_duration_increase;
+                const isMaxDoubleBeam = doubleBeamUpgradeLevel >= maxDoubleBeamLevel;
+                const canUpgradeDoubleBeam = !isMaxDoubleBeam && coins >= doubleBeamUpgradeCost;
+                const doubleBeamUpgradeDiv = document.createElement('div');
+                doubleBeamUpgradeDiv.className = `upgrade-option ${!canUpgradeDoubleBeam ? 'locked' : ''}`;
+                doubleBeamUpgradeDiv.innerHTML = `<div class="skin-option-content"><canvas id="powerup-canvas-doubleBeam" width="60" height="60"></canvas><h3>${doubleBeamUpgradeInfo.name} Upgrade</h3></div><p>Current Level: ${doubleBeamUpgradeLevel} / ${maxDoubleBeamLevel}</p><p>Duration: ${currentDoubleBeamDuration}s</p><span class="unlock-cost">${isMaxDoubleBeam ? 'Max Level' : `Cost: ${doubleBeamUpgradeCost} Coins`}</span><button class="purchase-button" id="double-beam-upgrade-btn" ${!canUpgradeDoubleBeam ? 'disabled' : ''}>Upgrade</button>`;
+                powerupsOptionsContainer.appendChild(doubleBeamUpgradeDiv);
+                // Coin Multiplier Upgrade
+                const coinMultiplierUpgradeInfo = UPGRADES.coinMultiplier;
+                const coinMultiplierUpgradeCost = coinMultiplierUpgradeInfo.cost_increase * (coinMultiplierUpgradeLevel + 1);
+                const currentCoinMultiplierDuration = coinMultiplierUpgradeInfo.base_duration + (coinMultiplierUpgradeInfo.level_duration_increase * coinMultiplierUpgradeLevel);
+                const maxCoinMultiplierLevel = (coinMultiplierUpgradeInfo.max_duration - coinMultiplierUpgradeInfo.base_duration) / coinMultiplierUpgradeInfo.level_duration_increase;
+                const isMaxCoinMultiplier = coinMultiplierUpgradeLevel >= maxCoinMultiplierLevel;
+                const canUpgradeCoinMultiplier = !isMaxCoinMultiplier && coins >= coinMultiplierUpgradeCost;
+                const coinMultiplierUpgradeDiv = document.createElement('div');
+                coinMultiplierUpgradeDiv.className = `upgrade-option ${!canUpgradeCoinMultiplier ? 'locked' : ''}`;
+                coinMultiplierUpgradeDiv.innerHTML = `<div class="skin-option-content"><canvas id="powerup-canvas-coinMultiplier" width="60" height="60"></canvas><h3>${coinMultiplierUpgradeInfo.name} Upgrade</h3></div><p>Current Level: ${coinMultiplierUpgradeLevel} / ${maxCoinMultiplierLevel}</p><p>Duration: ${currentCoinMultiplierDuration}s</p><span class="unlock-cost">${isMaxCoinMultiplier ? 'Max Level' : `Cost: ${coinMultiplierUpgradeCost} Coins`}</span><button class="purchase-button" id="coin-multiplier-upgrade-btn" ${!canUpgradeCoinMultiplier ? 'disabled' : ''}>Upgrade</button>`;
+                powerupsOptionsContainer.appendChild(coinMultiplierUpgradeDiv);
+                
+                document.getElementById('health-upgrade-btn').addEventListener('click', () => {
+                    if (canUpgradeHealth) {
+                        purchaseSound.triggerAttackRelease("C5", "8n");
+                        coins -= healthUpgradeCost;
+                        healthUpgradeLevel++;
+                        localStorage.setItem('orbitDashCoins', coins);
+                        localStorage.setItem('healthUpgradeLevel', healthUpgradeLevel);
+                        generatePowerupOptions();
+                        showShopMessage('Success!', `Health Pack upgrade purchased!`);
+                    } else if (isMaxHealth) {
+                        buttonClickSynth.triggerAttackRelease("C2", "8n");
+                        showShopMessage('Max Level Reached', `You have already reached the maximum level for this upgrade.`);
+                    } else {
+                        buttonClickSynth.triggerAttackRelease("C2", "8n");
+                        showShopMessage('Not Enough Coins', `You need ${healthUpgradeCost} coins for this upgrade.`);
+                    }
+                });
+                document.getElementById('double-beam-upgrade-btn').addEventListener('click', () => {
+                    if (canUpgradeDoubleBeam) {
+                        purchaseSound.triggerAttackRelease("C5", "8n");
+                        coins -= doubleBeamUpgradeCost;
+                        doubleBeamUpgradeLevel++;
+                        localStorage.setItem('orbitDashCoins', coins);
+                        localStorage.setItem('doubleBeamUpgradeLevel', doubleBeamUpgradeLevel);
+                        generatePowerupOptions();
+                        showShopMessage('Success!', `Double Beam upgrade purchased!`);
+                    } else if (isMaxDoubleBeam) {
+                        buttonClickSynth.triggerAttackRelease("C2", "8n");
+                        showShopMessage('Max Level Reached', `You have already reached the maximum level for this upgrade.`);
+                    } else {
+                        buttonClickSynth.triggerAttackRelease("C2", "8n");
+                        showShopMessage('Not Enough Coins', `You need ${doubleBeamUpgradeCost} coins for this upgrade.`);
+                    }
+                });
+                document.getElementById('coin-multiplier-upgrade-btn').addEventListener('click', () => {
+                    if (canUpgradeCoinMultiplier) {
+                        purchaseSound.triggerAttackRelease("C5", "8n");
+                        coins -= coinMultiplierUpgradeCost;
+                        coinMultiplierUpgradeLevel++;
+                        localStorage.setItem('orbitDashCoins', coins);
+                        localStorage.setItem('coinMultiplierUpgradeLevel', coinMultiplierUpgradeLevel);
+                        generatePowerupOptions();
+                        showShopMessage('Success!', `Coin Multiplier upgrade purchased!`);
+                    } else if (isMaxCoinMultiplier) {
+                        buttonClickSynth.triggerAttackRelease("C2", "8n");
+                        showShopMessage('Max Level Reached', `You have already reached the maximum level for this upgrade.`);
+                    } else {
+                        buttonClickSynth.triggerAttackRelease("C2", "8n");
+                        showShopMessage('Not Enough Coins', `You need ${coinMultiplierUpgradeCost} coins for this upgrade.`);
+                    }
+                });
+                drawShopPowerups();
+            }
+            function showShopMenu() {
+                previousScreen = 'mainMenu';
+                buttonClickSynth.triggerAttackRelease("C5", "8n");
+                showScreen('shopMenu');
+                skinsOptionsContainer.style.display = 'flex';
+                powerupsOptionsContainer.style.display = 'none';
+                skinsTabBtn.classList.add('active');
+                powerupsTabBtn.classList.remove('active');
+                generateShopOptions();
+            }
+            function getBeamColor() {
+                switch(player.skin) {
+                    case 'ironMan': return '#CC0000';
+                    case 'greenHulk': return '#006400';
+                    case 'blackWidow': return '#4d4d4d';
+                    case 'captainAmerica': return '#FFD700';
+                    default: return '#00ffcc';
+                }
+            }
+            function fireBeam() {
+                beamSynth.triggerAttackRelease("G5", "16n");
+                const speed = 8;
+                const shipAngle = player.angle + Math.PI / 2;
+                const beamColor = getBeamColor();
+                if (doubleBeamActive) {
+                    const offsetAngle = Math.PI / 16;
+                    beams.push({ x: player.x, y: player.y, vx: speed * Math.cos(shipAngle - offsetAngle), vy: speed * Math.sin(shipAngle - offsetAngle), size: 7, color: beamColor });
+                    beams.push({ x: player.x, y: player.y, vx: speed * Math.cos(shipAngle + offsetAngle), vy: speed * Math.sin(shipAngle + offsetAngle), size: 7, color: beamColor });
+                } else {
+                    const vx = speed * Math.cos(shipAngle);
+                    const vy = speed * Math.sin(shipAngle);
+                    beams.push({ x: player.x, y: player.y, vx, vy, size: 7, color: beamColor });
+                }
+            }
+            function showInstructions() {
+                buttonClickSynth.triggerAttackRelease("C5", "8n");
+                gamePaused = true;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                }
+                showScreen('instructions');
+            }
+            function backFromInstructions() {
+                buttonClickSynth.triggerAttackRelease("C5", "8n");
+                if (previousScreen === 'mainMenu') {
+                    showMainMenu();
+                } else if (previousScreen === 'gameOver') {
+                    showGameOverMenu();
+                } else if (previousScreen === 'game') {
+                    gamePaused = false;
+                    showScreen('game');
+                    gameLoop();
+                }
+            }
+            
+            // --- Event Listeners ---
+            startPlayBtn.addEventListener('click', startIntro);
+            startGameBtnInMenu.addEventListener('click', newGame);
+            shopBtn.addEventListener('click', showShopMenu);
+            shopBackBtn.addEventListener('click', backToMainMenu);
+            newGameBtn.addEventListener('click', newGame);
+            continueGameBtnInMenu.addEventListener('click', continueGame);
+            homeButton.addEventListener('click', backToMainMenu);
+            instructionsBtnMenu.addEventListener('click', () => {
+                previousScreen = 'mainMenu';
+                showInstructions();
+            });
+            instructionsBtnGameover.addEventListener('click', () => {
+                previousScreen = 'gameOver';
+                showInstructions();
+            });
+            instructionsBackBtn.addEventListener('click', backFromInstructions);
+            reviveBtn.addEventListener('click', () => {
+                const reviveCost = 20 + (reviveCount * 20);
+                if (coins >= reviveCost) {
+                    speak("Revived", "Autonoe");
+                    coins -= reviveCost;
+                    localStorage.setItem('orbitDashCoins', coins);
+                    coinDisplay.innerText = coins;
+                    playerHealth = 100;
+                    playerHealthDisplay.innerText = 100;
+                    earthHealth = 100;
+                    earthHealthDisplay.innerText = 100;
+                    reviveCount++;
+                    gameOver = false;
+                    gamePaused = false;
+                    showScreen('game');
+                    gameLoop();
+                } else {
+                    showShopMessage('Insufficient Funds', `You do not have enough coins for a revive. Current cost is ${reviveCost} coins.`);
+                }
+            });
+            skinsTabBtn.addEventListener('click', () => {
+                buttonClickSynth.triggerAttackRelease("C5", "8n");
+                skinsOptionsContainer.style.display = 'flex';
+                powerupsOptionsContainer.style.display = 'none';
+                skinsTabBtn.classList.add('active');
+                powerupsTabBtn.classList.remove('active');
+                generateShopOptions();
+            });
+            powerupsTabBtn.addEventListener('click', () => {
+                buttonClickSynth.triggerAttackRelease("C5", "8n");
+                skinsOptionsContainer.style.display = 'none';
+                powerupsOptionsContainer.style.display = 'flex';
+                powerupsTabBtn.classList.add('active');
+                skinsTabBtn.classList.remove('active');
+                generatePowerupOptions();
+            });
+            let isQKeyPressed = false;
+            window.addEventListener('keydown', (e) => {
+                if (!gameOver && !gamePaused) {
+                    if (e.key === 'q' && !isQKeyPressed) {
+                        fireBeam();
+                        isQKeyPressed = true;
+                    }
+                    if (e.key === ' ') {
+                        player.direction *= -1;
+                    }
+                }
+            });
+            window.addEventListener('keyup', (e) => {
+                if (e.key === 'q') {
+                    isQKeyPressed = false;
+                }
+            });
+            window.addEventListener('blur', () => {
+                if (!gameOver && !gamePaused && isGameStarted) {
+                    gamePaused = true;
+                    showMainMenu();
+                }
+            });
+        };
+    </script>
+ </body>
+ </html>
+
